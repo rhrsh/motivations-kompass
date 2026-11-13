@@ -20,6 +20,7 @@
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
+html { background: var(--bg); }
 body {
   background: var(--bg); color: var(--ink); font-family: var(--font);
   font-size: 16px; line-height: 1.45; -webkit-font-smoothing: antialiased;
@@ -47,6 +48,10 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
   background: var(--accent); color: var(--accent-ink); width: 100%; transition: transform .12s ease;
 }
 .btn:active { transform: scale(.98); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.confirm { background: var(--s1); color: #fff; border-color: var(--s1); }
+.actions { display: flex; gap: 10px; }
+.actions .btn { flex: 1; padding-inline: 12px; }
 .link { background: none; border: 0; color: var(--accent); font-weight: 600; padding: 6px; align-self: center; }
 .link.small { font-size: 13px; padding: 4px 0; }
 .pill {
@@ -81,10 +86,12 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
 .progress button::before { content: ""; display: block; height: 5px; border-radius: 3px; background: var(--line); transition: background .25s; }
 .progress button.done::before { background: var(--accent); }
 .progress button.now::before { background: var(--ink); }
-.q h2 { font-size: 32px; line-height: 1.1; }
-.q p { font-size: 17px; color: var(--muted); margin: 10px 0 0; }
+/* Frage, Gesichter und Kommentar als eine Gruppe, mittig im freien Raum */
+.stage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px; padding-bottom: 6vh; }
+.q h2 { font-size: 38px; line-height: 1.08; }
+.q p { font-size: 19px; color: var(--muted); margin: 12px 0 0; }
 
-.scale { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding-bottom: 12px; }
+.scale { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding-bottom: 14px; margin: 0 -6px; }
 .opt {
   border: 0; background: none; padding: 4px; border-radius: 50%;
   transition: transform .18s cubic-bezier(.3,1.6,.5,1), opacity .2s, filter .2s;

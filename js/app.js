@@ -229,6 +229,7 @@ function showVersion() {
 const BUBBLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>';
 
 function renderSummary() {
+  resetRedo();
   $("sumWeek").textContent = `KW ${WEEK.w} · ${dateLabel()}`;
   const avg = average();
   $("avg").textContent = avg == null ? "–" : sayFor(avg).toLowerCase();
@@ -266,7 +267,6 @@ function renderHome() {
   const n = MOTIVES.filter((m) => ratingOf(m.id)).length;
   const avg = average();
   const fc = $("homeFace");
-  $("homeRedo").hidden = n < MOTIVES.length;
   if (n === MOTIVES.length) {
     fc.className = "status-face"; fc.innerHTML = face(Math.round(avg));
     $("homeText").innerHTML = "";
@@ -287,7 +287,20 @@ onTap($("homeBtn"), () => {
   if (MOTIVES.every((m) => ratingOf(m.id))) { renderSummary(); show("summary"); }
   else { fromSummary = false; step = firstOpen(); renderStep(); show("step"); }
 });
-onTap($("homeRedo"), () => { fromSummary = false; step = 0; renderStep(); show("step"); });
+// „Neu ausfüllen“: löscht die Bewertungen dieser Woche. Zweistufig, damit nichts aus Versehen verschwindet.
+let redoTimer = 0;
+function resetRedo() { clearTimeout(redoTimer); $("redoBtn").classList.remove("confirm"); $("redoBtn").textContent = "Neu ausfüllen"; }
+onTap($("redoBtn"), async () => {
+  if (!$("redoBtn").classList.contains("confirm")) {
+    $("redoBtn").classList.add("confirm"); $("redoBtn").textContent = "Wirklich löschen?";
+    redoTimer = setTimeout(resetRedo, 3000);
+    return;
+  }
+  resetRedo();
+  try { await store.clearWeek(WEEK.key); } catch { flashSaved(false); return; }
+  entries = {};
+  fromSummary = false; step = 0; renderStep(); show("step");
+});
 onTap($("doneBtn"), goHome);
 $("exportBtn").addEventListener("click", () => store.exportFile());
 

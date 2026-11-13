@@ -27,7 +27,6 @@
     </div>
     <div class="spacer"></div>
     <button class="btn" id="homeBtn" type="button">Woche bewerten</button>
-    <button class="link" id="homeRedo" type="button" hidden>Nochmal durchgehen</button>
     <div class="foot">
       <button class="link small" id="exportBtn" type="button">Daten sichern</button>
       <span id="version"></span>
@@ -42,13 +41,14 @@
       <span class="eyebrow" id="stepCount">1 / 7</span>
     </div>
     <div class="progress" id="progress" aria-label="Motivatoren"></div>
-    <div class="q" id="qBox">
-      <h2 id="qName"></h2>
-      <p id="qText"></p>
+    <div class="stage">
+      <div class="q" id="qBox">
+        <h2 id="qName"></h2>
+        <p id="qText"></p>
+      </div>
+      <div class="scale" id="scale" role="radiogroup" aria-label="Wie erfüllt?"></div>
+      <textarea id="comment" rows="3" enterkeyhint="next" placeholder="Warum? (optional)"></textarea>
     </div>
-    <div class="spacer"></div>
-    <div class="scale" id="scale" role="radiogroup" aria-label="Wie erfüllt?"></div>
-    <textarea id="comment" rows="2" enterkeyhint="next" placeholder="Warum? (optional)"></textarea>
   </section>
 
   <!-- Auswertung: passt ohne Scrollen auf einen Bildschirm -->
@@ -61,7 +61,10 @@
     <div class="card"><div class="items" id="items"></div></div>
     <p class="note">Zum Ändern einen Motivator antippen.</p>
     <div class="spacer"></div>
-    <button class="btn" id="doneBtn" type="button">Fertig</button>
+    <div class="actions">
+      <button class="btn ghost" id="redoBtn" type="button">Neu ausfüllen</button>
+      <button class="btn" id="doneBtn" type="button">Fertig</button>
+    </div>
   </section>
 
 </div>

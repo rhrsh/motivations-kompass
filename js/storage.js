@@ -55,6 +55,15 @@ export async function saveEntry(week, motive, { rating = null, comment = "" }) {
   await committed(tx);
 }
 
+// Alle Einträge einer Woche löschen (für „Neu ausfüllen“)
+export async function clearWeek(week) {
+  const tx = (await db()).transaction("entries", "readwrite");
+  const store = tx.objectStore("entries");
+  const keys = await done(store.index("byWeek").getAllKeys(week));
+  for (const k of keys) store.delete(k);
+  await committed(tx);
+}
+
 // ---- Einstellungen ----
 
 export async function loadMotives() {
