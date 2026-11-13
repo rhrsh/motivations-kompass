@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Motivations-Kompass</title>
+  <meta name="description" content="Wöchentlicher Check: Wie gut sind meine Motivatoren erfüllt?">
+  <meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F141B" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- Bildschirm 1: ein Motivator pro Schritt -->
+  <section class="screen" id="step">
+    <div class="top">
+      <button class="pill" id="backBtn" type="button">← Zurück</button>
+      <span class="eyebrow" id="stepCount">1 / 7</span>
+    </div>
+    <div class="progress" id="progress"></div>
+    <div class="q" id="qBox">
+      <span class="eyebrow">Motivator</span>
+      <h2 id="qName"></h2>
+      <p id="qText"></p>
+    </div>
+    <div class="scale" id="scale" role="radiogroup" aria-label="Wie erfüllt?"></div>
+    <div class="verdict" id="verdict" aria-live="polite"></div>
+    <button class="comment-toggle" id="commentToggle" type="button">+ Kommentar hinzufügen</button>
+    <textarea id="comment" placeholder="Was steckt hinter der Zahl? (optional)" hidden></textarea>
+    <div class="spacer"></div>
+    <button class="btn" id="nextBtn" type="button" disabled>Weiter</button>
+  </section>
+
+  <!-- Bildschirm 2: Zusammenfassung -->
+  <section class="screen" id="summary" hidden>
+    <span class="eyebrow" id="sumWeek">KW</span>
+    <h1>Dein Kompass diese Woche</h1>
+    <div class="card score"><b id="avg">–</b><span>von 5 im Schnitt</span></div>
+    <div class="card"><div class="items" id="items"></div></div>
+    <button class="btn ghost" id="editBtn" type="button">Neu bewerten</button>
+    <button class="link" id="exportBtn" type="button">Daten sichern (Datei)</button>
+    <p class="note" id="savedNote"></p>
+  </section>
+
+</div>
+</body>
+</html>
