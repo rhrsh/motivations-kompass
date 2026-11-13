@@ -210,7 +210,20 @@ if (saved && !store.loadDraft(WEEK.key)) {
 
 store.requestPersistence();
 
-// ---- Offline-Fähigkeit ----
+// ---- Offline-Fähigkeit und Updates ----
+// Neue Version wird erkannt, sobald sich sw.js geändert hat (VERSION erhöht).
+// Dann erscheint oben ein Hinweis. Tippen lädt neu; der Entwurf bleibt gespeichert.
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((reg) => {
+    // Beim Zurückholen aus dem Hintergrund nach einer neuen Version fragen
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") reg.update().catch(() => {});
+    });
+  }).catch(() => {});
+  // Beim allerersten Start übernimmt der Service Worker auch – das ist kein Update
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadController) $("updateBar").hidden = false;
+  });
 }
+$("updateBar").addEventListener("click", () => location.reload());

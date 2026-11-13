@@ -1,6 +1,6 @@
 // Service Worker: speichert die App-Dateien, damit sie offline startet.
 // Bei jeder Änderung an der App VERSION erhöhen, sonst sieht das Handy die alte Version.
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE = `kompass-${VERSION}`;
 const FILES = [
   "./", "./index.html", "./css/app.css",
@@ -20,11 +20,13 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-// Erst Netz (damit Änderungen sofort ankommen), bei Funkloch aus dem Speicher
+// Erst Netz (damit Änderungen sofort ankommen), bei Funkloch aus dem Speicher.
+// "no-cache" heißt: immer beim Server nachfragen, ob es etwas Neues gibt,
+// statt bis zu 10 Minuten eine zwischengespeicherte Kopie zu nehmen.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+  if (e.request.method !== "GET" || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request.url, { cache: "no-cache" })
       .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); return res; })
       .catch(() => caches.match(e.request))
   );
