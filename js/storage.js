@@ -138,7 +138,7 @@ export async function exportFile() {
   a.href = URL.createObjectURL(blob);
   // Datum nach Ortszeit (toISOString wäre Weltzeit und zeigt kurz nach Mitternacht den Vortag)
   const d = new Date(), pad = (n) => String(n).padStart(2, "0");
-  a.download = `motivations-kompass-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
+  a.download = `motivation-tracker-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
@@ -146,7 +146,7 @@ export async function exportFile() {
 // Sicherung einspielen: führt die Datei mit den vorhandenen Daten zusammen.
 // Gibt es einen Eintrag (Woche + Motivator) doppelt, gewinnt der neuere (updatedAt).
 // Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine eingerichtet sind.
-// Liest das heutige Format (motivations-kompass/2) und das alte aus der localStorage-Zeit.
+// Liest das heutige Format (motivations-kompass/2, Kennung bleibt trotz neuem App-Namen) und das alte aus der localStorage-Zeit.
 export async function importFile(file) {
   const data = JSON.parse(await file.text());
   const rows = [];

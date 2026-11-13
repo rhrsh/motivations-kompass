@@ -1,7 +1,11 @@
-# Motivations-Kompass
+# Motivation Tracker
 
 Wöchentlicher Check: Wie gut sind meine Motivatoren erfüllt?
 Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät.
+
+Name: „Motivation Tracker“, unter dem Icon kurz „Motivation“. Repository, Web-Adresse, Datenbank (`kompass`) und
+Format der Sicherung (`motivations-kompass/2`) behalten den alten Namen, damit Einrichtungslink, Daten und alte
+Sicherungen weiter funktionieren.
 
 ## Aufbau
 

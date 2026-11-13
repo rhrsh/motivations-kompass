@@ -1,6 +1,6 @@
 {
-  "name": "Motivations-Kompass",
-  "short_name": "Kompass",
+  "name": "Motivation Tracker",
+  "short_name": "Motivation",
   "description": "Wöchentlicher Check: Wie gut sind meine Motivatoren erfüllt?",
   "lang": "de",
   "start_url": "./",

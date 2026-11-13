@@ -348,7 +348,7 @@ $("importFile").addEventListener("change", async (e) => {
       : "Sicherung geladen. Alles war schon auf dem Gerät.";
     if (r.motivesTaken) msg += " Motivatoren übernommen.";
   } catch {
-    msg = "Diese Datei konnte nicht geladen werden. Ist es eine Sicherung des Motivations-Kompass?";
+    msg = "Diese Datei konnte nicht geladen werden. Ist es eine Sicherung des Motivation Trackers?";
   }
   try { sessionStorage.setItem("kompass:notice", msg); } catch {}
   location.reload();

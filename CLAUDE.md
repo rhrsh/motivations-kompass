@@ -1,6 +1,6 @@
 # Regeln für Claude in diesem Repository
 
-Motivations-Kompass: installierbare Web-App (PWA) ohne Build-Schritt, gehostet über GitHub Pages aus `main` (Root).
+Motivation Tracker (Repository: motivations-kompass): installierbare Web-App (PWA) ohne Build-Schritt, gehostet über GitHub Pages aus `main` (Root).
 Aufbau und Datenmodell: siehe README.md.
 
 ## Arbeitsweise
