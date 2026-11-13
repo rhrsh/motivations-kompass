@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Motivations-Kompass</title>
   <meta name="description" content="Wöchentlicher Check: Wie gut sind meine Motivatoren erfüllt?">
-  <meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0F141B" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F1F3F6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#11161D" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -17,14 +17,12 @@
 <div class="app">
 
   <!-- Start: Status der Woche und ein Knopf -->
-  <section class="screen" id="home">
-    <span class="eyebrow" id="homeWeek">KW</span>
+  <section class="screen center" id="home">
+    <span class="eyebrow accent" id="homeWeek">KW</span>
     <h1>Motivations-Kompass</h1>
     <div class="spacer"></div>
-    <div class="status" id="homeStatus">
-      <div class="status-face" id="homeFace"></div>
-      <p class="status-text" id="homeText"></p>
-    </div>
+    <div class="gauge big" id="homeGauge"><div class="gauge-face" id="homeFace"></div></div>
+    <p class="status-text" id="homeText"></p>
     <div class="spacer"></div>
     <button class="btn" id="homeBtn" type="button">Woche bewerten</button>
     <div class="foot">
@@ -35,13 +33,8 @@
 
   <!-- Bewerten: ein Motivator pro Schritt -->
   <section class="screen" id="step" hidden>
-    <div class="top">
-      <button class="pill" id="backBtn" type="button">← Zurück</button>
-      <span class="saved" id="saveState" aria-live="polite"></span>
-      <span class="eyebrow" id="stepCount">1 / 7</span>
-    </div>
-    <div class="progress" id="progress" aria-label="Motivatoren"></div>
-    <div class="stage" id="stage">
+    <div class="top"><span class="saved" id="saveState" aria-live="polite"></span></div>
+    <div class="stage center" id="stage">
       <div class="q" id="qBox">
         <div class="qicon" id="qIcon"></div>
         <h2 id="qName"></h2>
@@ -49,18 +42,25 @@
       </div>
       <div class="scale" id="scale" role="radiogroup" aria-label="Wie erfüllt?"></div>
       <div class="cbox">
-        <textarea id="comment" rows="3" enterkeyhint="next" placeholder="Warum? (optional)"></textarea>
+        <textarea id="comment" rows="2" enterkeyhint="next" placeholder="Warum? (optional)"></textarea>
         <button class="btn next" id="commentNext" type="button" hidden>Weiter →</button>
       </div>
+    </div>
+    <div class="bottombar">
+      <button class="round" id="backBtn" type="button" aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="count" id="stepCount">1 / 7</span>
+      <div class="progress" id="progress" aria-label="Motivatoren"></div>
     </div>
   </section>
 
   <!-- Auswertung: passt ohne Scrollen auf einen Bildschirm -->
   <section class="screen" id="summary" hidden>
-    <span class="eyebrow" id="sumWeek">KW</span>
     <div class="overall">
-      <div id="avgFace"></div>
-      <div><span class="muted">Im Schnitt</span><b id="avg">–</b></div>
+      <div class="gauge" id="avgGauge"><div class="gauge-face" id="avgFace"></div></div>
+      <div>
+        <span class="eyebrow accent" id="sumWeek">KW</span>
+        <span class="muted">Im Schnitt</span><b id="avg">–</b>
+      </div>
     </div>
     <div class="card"><div class="items" id="items"></div></div>
     <p class="note">Zum Ändern einen Motivator antippen.</p>

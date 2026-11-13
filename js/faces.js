@@ -19,5 +19,7 @@ export function face(v, label = "") {
   const role = label ? `role="img" aria-label="${label}"` : `aria-hidden="true"`;
   return `<svg class="face" viewBox="0 0 64 64" ${role} style="--fc:var(--s${v});--fi:var(--s${v}-ink)">` +
     `<circle cx="32" cy="32" r="30" class="bg"/>` +
+    `<path d="M8 40a25 25 0 0 0 48 0a26 22 0 0 1-48 0z" class="shade"/>` +
+    `<ellipse cx="23" cy="13" rx="10" ry="4.5" class="shine"/>` +
     `<g class="ft">${FEATURES[v]}</g></svg>`;
 }

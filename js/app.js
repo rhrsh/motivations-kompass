@@ -254,6 +254,7 @@ function renderSummary() {
   const avg = average();
   $("avg").textContent = avg == null ? "–" : sayFor(avg).toLowerCase();
   $("avgFace").innerHTML = avg == null ? "" : face(Math.round(avg));
+  setGauge($("avgGauge"), avg);
   const box = $("items"); box.replaceChildren();
   MOTIVES.forEach((m, i) => {
     const r = ratingOf(m.id);
@@ -282,6 +283,11 @@ function renderSummary() {
 
 // ---- Start ----
 const dateLabel = () => new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long" });
+// Ring um das Gesicht: füllt sich mit dem Durchschnitt (1 = kaum, 5 = voll)
+function setGauge(el, avg) {
+  el.style.setProperty("--p", avg ? `${Math.round((avg / 5) * 100)}%` : "0%");
+}
+
 function renderHome() {
   showVersion();
   $("homeWeek").textContent = `KW ${WEEK.w} · ${dateLabel()}`;
@@ -289,19 +295,20 @@ function renderHome() {
   const avg = average();
   const fc = $("homeFace");
   if (n === MOTIVES.length) {
-    fc.className = "status-face"; fc.innerHTML = face(Math.round(avg));
+    fc.className = "gauge-face"; fc.innerHTML = face(Math.round(avg));
     $("homeText").innerHTML = "";
     $("homeText").append("Diese Woche erledigt. Im Schnitt ", Object.assign(document.createElement("b"), { textContent: sayFor(avg).toLowerCase() }), ".");
     $("homeBtn").textContent = "Ergebnis ansehen";
   } else if (n > 0) {
-    fc.className = "status-face"; fc.innerHTML = face(Math.round(avg));
+    fc.className = "gauge-face"; fc.innerHTML = face(Math.round(avg));
     $("homeText").textContent = `${n} von ${MOTIVES.length} Motivatoren bewertet.`;
     $("homeBtn").textContent = `Weiter bei ${MOTIVES[firstOpen()].name}`;
   } else {
-    fc.className = "status-face empty"; fc.innerHTML = face(3);
+    fc.className = "gauge-face empty"; fc.innerHTML = face(3);
     $("homeText").textContent = "Diese Woche noch nicht bewertet. Dauert etwa zwei Minuten.";
     $("homeBtn").textContent = "Woche bewerten";
   }
+  setGauge($("homeGauge"), n ? avg : null);
   if (dbError) $("homeText").textContent = "Speichern auf diesem Gerät ist gerade nicht möglich.";
 }
 onTap($("homeBtn"), () => {
