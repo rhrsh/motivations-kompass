@@ -10,7 +10,7 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 | `index.html` | Gerüst der beiden Bildschirme (Bewerten, Zusammenfassung) |
 | `css/app.css` | Aussehen. Farben oben als Tokens |
 | `js/config.js` | **Inhalte:** neutrale Standard-Motivatoren, Skala |
-| `js/storage.js` | **Datenhaltung:** Speichern im Browser, Entwurf, Export |
+| `js/storage.js` | **Datenhaltung:** IndexedDB, Umzug alter Daten, Export |
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |
@@ -26,18 +26,26 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 
 Die eigenen Motivatoren stehen bewusst nicht im öffentlichen Code. Sie werden einmalig über einen
 Einrichtungslink aufs Handy geladen: `…/motivations-kompass/#setup=<base64url-JSON>`.
-Der Teil nach `#` wird vom Browser nie an den Server geschickt. Die App speichert die Liste unter
-`kompass:motives` im localStorage und entfernt den Teil aus der Adresse.
+Der Teil nach `#` wird vom Browser nie an den Server geschickt. Die App speichert die Liste
+in der IndexedDB (`settings` → `motives`) und entfernt den Teil aus der Adresse.
 
 ## Datenmodell
 
-Ein Eintrag pro Kalenderwoche im `localStorage` unter `kompass:checks`:
+IndexedDB-Datenbank `kompass` (nur auf dem Gerät) mit zwei Tabellen (Object Stores):
+
+| Tabelle | Schlüssel | Inhalt |
+|---|---|---|
+| `entries` | `[week, motive]` | ein Datensatz je Kalenderwoche und Motivator. Index `byWeek` auf `week` |
+| `settings` | `key` | Einstellungen, z. B. `motives` (persönliche Motivatoren) |
 
 ```json
-{ "2026-W46": { "week": "2026-W46", "ratings": { "verantwortung": 3 }, "comments": { "verantwortung": "…" }, "average": 3.0, "updatedAt": "…" } }
+{ "week": "2026-W46", "motive": "verantwortung", "rating": 4, "comment": "…", "updatedAt": "2026-11-13T09:59:54.160Z" }
 ```
 
-Ältere Wochen bleiben gespeichert, werden in v1 aber nicht angezeigt.
+`rating`: 1 = gar nicht … 5 = voll erfüllt, `null` = noch nicht eingeordnet. Jede Eingabe schreibt sofort genau
+diesen einen Datensatz; es gibt keinen Entwurf und keinen Speichermoment. Der Schnitt wird nicht gespeichert,
+sondern beim Anzeigen berechnet. Alte Daten aus dem localStorage (bis Version v6) übernimmt die App beim ersten
+Start automatisch.
 
 ## Änderungen veröffentlichen
 

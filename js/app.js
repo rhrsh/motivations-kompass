@@ -1,8 +1,11 @@
 import { DEFAULT_MOTIVES, SCALE, ADVANCE_MS } from "./config.js";
 import * as store from "./storage.js";
 
-store.applySetupFromHash();
-const MOTIVES = store.loadMotives() || DEFAULT_MOTIVES;
+// Datenbank vorbereiten: einmalig alte Daten übernehmen, ggf. Einrichtungslink anwenden
+let dbError = null;
+await store.migrateFromLocalStorage().catch((e) => { dbError = e; });
+await store.applySetupFromHash().catch(() => {});
+const MOTIVES = (await store.loadMotives().catch(() => null)) || DEFAULT_MOTIVES;
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,16 +37,18 @@ function isoWeek(d) {
 const WEEK = isoWeek(new Date());
 
 // ---- Zustand ----
-const emptyCheck = () => ({ week: WEEK.key, ratings: {}, comments: {} });
-let check = store.loadDraft(WEEK.key) || emptyCheck();
+// "entries" spiegelt die Datensätze der aktuellen Woche aus der Datenbank: { motive: { rating, comment } }
+let entries = await store.loadWeek(WEEK.key).catch((e) => { dbError = e; return {}; });
+const ratingOf = (id) => entries[id]?.rating || 0;
+const commentOf = (id) => entries[id]?.comment || "";
 let step = 0;
 let fromSummary = false; // Korrektur aus der Zusammenfassung: danach dorthin zurück
 
-const average = (c) => {
-  const v = MOTIVES.map((m) => c.ratings[m.id]).filter(Boolean);
+const average = () => {
+  const v = MOTIVES.map((m) => ratingOf(m.id)).filter(Boolean);
   return v.length ? Math.round((v.reduce((a, b) => a + b, 0) / v.length) * 10) / 10 : null;
 };
-const firstOpen = () => Math.max(0, MOTIVES.findIndex((m) => !check.ratings[m.id]));
+const firstOpen = () => Math.max(0, MOTIVES.findIndex((m) => !ratingOf(m.id)));
 
 // ---- Navigation ----
 function show(id) {
@@ -59,7 +64,7 @@ function goNext() {
   cancelAdvance();
   if (!fromSummary && step < MOTIVES.length - 1) { goTo(step + 1, 1); return; }
   // letzter Motivator oder Korrektur: zum Ergebnis, sofern alles bewertet ist
-  const open = MOTIVES.findIndex((m) => !check.ratings[m.id]);
+  const open = MOTIVES.findIndex((m) => !ratingOf(m.id));
   if (open >= 0) { goTo(open, 1); return; }
   finish();
 }
@@ -111,11 +116,11 @@ $("progress").style.gridTemplateColumns = `repeat(${MOTIVES.length}, 1fr)`;
 
 function renderStep(dir = 0) {
   const m = MOTIVES[step];
-  const r = check.ratings[m.id] || 0;
+  const r = ratingOf(m.id);
   $("backBtn").style.visibility = step === 0 ? "hidden" : "visible";
   $("stepCount").textContent = `${step + 1} / ${MOTIVES.length}`;
   [...$("progress").children].forEach((el, i) => {
-    el.className = i === step ? "now" : check.ratings[MOTIVES[i].id] ? "done" : "";
+    el.className = i === step ? "now" : ratingOf(MOTIVES[i].id) ? "done" : "";
   });
   const box = $("qBox");
   box.classList.remove("fade", "in-next", "in-prev"); void box.offsetWidth;
@@ -126,12 +131,29 @@ function renderStep(dir = 0) {
     const on = Number(b.dataset.v) === r;
     b.classList.toggle("sel", on); b.setAttribute("aria-checked", String(on));
   }
-  $("comment").value = check.comments[m.id] || "";
+  $("comment").value = commentOf(m.id);
+}
+
+// ---- Speichern: jede Eingabe sofort als Datensatz ----
+function persist(id) {
+  const e = entries[id];
+  store.saveEntry(WEEK.key, id, { rating: e.rating ?? null, comment: e.comment ?? "" })
+    .then(() => { e.updatedAt = new Date().toISOString(); flashSaved(true); })
+    .catch(() => flashSaved(false));
+}
+let flashTimer = 0;
+function flashSaved(ok) {
+  const el = $("saveState");
+  el.textContent = ok ? "✓ Gespeichert" : "Speichern fehlgeschlagen";
+  el.classList.toggle("err", !ok); el.classList.add("on");
+  clearTimeout(flashTimer);
+  if (ok) flashTimer = setTimeout(() => el.classList.remove("on"), 1200);
 }
 
 function choose(v) {
-  check.ratings[MOTIVES[step].id] = v;
-  store.saveDraft(check);
+  const id = MOTIVES[step].id;
+  entries[id] = { ...entries[id], rating: v };
+  persist(id);
   navigator.vibrate?.(8);
   renderStep();
   // Wird gerade ein Kommentar geschrieben, nicht weiterspringen: Enter geht weiter
@@ -144,14 +166,14 @@ $("comment").addEventListener("focus", cancelAdvance);
 $("comment").addEventListener("input", (e) => {
   cancelAdvance();
   const id = MOTIVES[step].id;
-  if (e.target.value.trim()) check.comments[id] = e.target.value; else delete check.comments[id];
-  store.saveDraft(check);
+  entries[id] = { ...entries[id], comment: e.target.value.trim() ? e.target.value : "" };
+  persist(id);
 });
 // Enter auf der Tastatur = weiter (sofern bewertet)
 $("comment").addEventListener("keydown", (e) => {
   if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
   e.preventDefault();
-  if (!check.ratings[MOTIVES[step].id]) return;
+  if (!ratingOf(MOTIVES[step].id)) return;
   $("comment").blur();
   goNext();
 });
@@ -162,6 +184,8 @@ onTap($("backBtn"), goBack);
 // Ohne das würde die Zurück-Geste die App schließen. So geht sie einen Motivator zurück.
 history.pushState({ kompass: 1 }, "");
 window.addEventListener("popstate", () => {
+  // Einrichtungslink bei schon geöffneter App: neu laden, dann wird er angewendet
+  if (location.hash.startsWith("#setup=")) { location.reload(); return; }
   if (!$("step").hidden && step > 0) {
     goBack();
     history.pushState({ kompass: 1 }, "");
@@ -176,7 +200,7 @@ window.addEventListener("popstate", () => {
 // Tastatur am Rechner: Pfeiltasten und 1–5 (5 = voll erfüllt)
 document.addEventListener("keydown", (e) => {
   if ($("step").hidden || e.target.closest?.("textarea")) return;
-  if (e.key === "ArrowRight" && check.ratings[MOTIVES[step].id]) goNext();
+  if (e.key === "ArrowRight" && ratingOf(MOTIVES[step].id)) goNext();
   else if (e.key === "ArrowLeft") goBack();
   else if (/^[1-5]$/.test(e.key)) choose(Number(e.key));
 });
@@ -184,17 +208,9 @@ document.addEventListener("keydown", (e) => {
 // App geht in den Hintergrund: nicht unbemerkt weiterspringen
 document.addEventListener("visibilitychange", () => { if (document.hidden) cancelAdvance(); });
 
+// Alles ist schon gespeichert – hier wird nur die Zusammenfassung gezeigt
 function finish() {
   fromSummary = false;
-  const done = { ...check, average: average(check), updatedAt: new Date().toISOString() };
-  try {
-    store.saveWeek(done);
-    store.clearDraft();
-    $("savedNote").textContent = "Gespeichert auf diesem Handy.";
-  } catch {
-    $("savedNote").textContent = "Speichern hat nicht geklappt. Bitte über „Daten sichern“ eine Kopie ziehen.";
-  }
-  check = done;
   renderSummary(); show("summary");
 }
 
@@ -211,12 +227,17 @@ function showVersion() {
 
 function renderSummary() {
   showVersion();
+  const last = Object.values(entries).map((e) => e.updatedAt).filter(Boolean).sort().pop();
+  $("savedNote").textContent = dbError
+    ? "Speichern auf diesem Gerät ist gerade nicht möglich."
+    : "Jede Eingabe wird sofort auf diesem Gerät gespeichert." +
+      (last ? ` Zuletzt ${new Date(last).toLocaleString("de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" })} Uhr.` : "");
   $("sumWeek").textContent = `KW ${WEEK.w} · ${new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`;
-  const avg = average(check);
+  const avg = average();
   $("avg").textContent = avg == null ? "–" : sayFor(avg).toLowerCase();
   const box = $("items"); box.replaceChildren();
   MOTIVES.forEach((m, i) => {
-    const r = check.ratings[m.id] || 0;
+    const r = ratingOf(m.id);
     const it = document.createElement("button"); it.type = "button"; it.className = "item";
     const h = document.createElement("div"); h.className = "h";
     const st = document.createElement("strong"); st.textContent = m.name;
@@ -227,7 +248,7 @@ function renderSummary() {
     fill.style.width = `${r * 20}%`; fill.style.setProperty("--c", SCALE[(r || 1) - 1].color);
     bar.append(fill);
     it.append(h, bar);
-    const c = (check.comments[m.id] || "").trim();
+    const c = commentOf(m.id).trim();
     if (c) { const p = document.createElement("p"); p.textContent = c; it.append(p); }
     onTap(it, () => { fromSummary = true; step = i; renderStep(); show("step"); });
     box.append(it);
@@ -235,26 +256,27 @@ function renderSummary() {
 }
 
 $("editBtn").addEventListener("click", () => {
-  check = emptyCheck(); fromSummary = false; step = 0; renderStep(); show("step");
+  // Nichts wird gelöscht: man geht die Woche von vorn durch, die Auswahl ist vorbelegt
+  fromSummary = false; step = 0; renderStep(); show("step");
 });
 $("exportBtn").addEventListener("click", () => store.exportFile());
 
-// ---- Start: Woche schon erledigt → Ergebnis, sonst erste offene Frage ----
-const saved = store.loadWeek(WEEK.key);
-if (saved && !store.loadDraft(WEEK.key)) {
-  check = saved;
-  $("savedNote").textContent = `Zuletzt gespeichert am ${new Date(saved.updatedAt).toLocaleString("de-DE", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" })} Uhr.`;
-  renderSummary(); show("summary");
-} else {
-  step = firstOpen(); renderStep(); show("step");
-}
+// ---- Start: Woche komplett → Ergebnis, sonst erste offene Frage ----
+if (dbError) flashSaved(false);
+if (MOTIVES.every((m) => ratingOf(m.id))) { renderSummary(); show("summary"); }
+else { step = firstOpen(); renderStep(); show("step"); }
+
+// Neue Kalenderwoche, während die App offen war: neu starten, damit der neue Datensatz gilt
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && isoWeek(new Date()).key !== WEEK.key) location.reload();
+});
 
 store.requestPersistence();
 
 // ---- Offline-Fähigkeit und Updates ----
 // Neue Version wird erkannt, sobald sich sw.js geändert hat (VERSION erhöht).
-// Übernimmt eine neue Version, lädt die App sich einmal selbst neu. Entwürfe
-// (auch Kommentare, bei jedem Tastendruck) sind gespeichert, es geht nichts verloren.
+// Übernimmt eine neue Version, lädt die App sich einmal selbst neu. Jede Eingabe
+// liegt schon in der Datenbank (auch Kommentare, bei jedem Tastendruck), es geht nichts verloren.
 if ("serviceWorker" in navigator) {
   const hadController = !!navigator.serviceWorker.controller; // beim allerersten Start: kein Update
   let reloading = false;

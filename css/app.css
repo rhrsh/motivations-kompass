@@ -52,6 +52,11 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
   border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted);
 }
 
+/* Speicher-Rückmeldung oben */
+.saved { font-size: 12px; font-weight: 600; color: var(--muted); opacity: 0; transition: opacity .3s; }
+.saved.on { opacity: 1; }
+.saved.err { color: var(--s1); }
+
 /* Schritt */
 .progress { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: -8px 0; }
 .progress button { border: 0; background: none; padding: 8px 0; }
