@@ -53,37 +53,51 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
 }
 
 /* Schritt */
-.progress { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-.progress span { height: 5px; border-radius: 3px; background: var(--line); transition: background .25s; }
-.progress span.done { background: var(--accent); }
-.progress span.now { background: var(--ink); }
-.q h2 { font-size: 32px; line-height: 1.1; margin-top: 8px; }
+.progress { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: -8px 0; }
+.progress button { border: 0; background: none; padding: 8px 0; }
+.progress button::before { content: ""; display: block; height: 5px; border-radius: 3px; background: var(--line); transition: background .25s; }
+.progress button.done::before { background: var(--accent); }
+.progress button.now::before { background: var(--ink); }
+.q h2 { font-size: 32px; line-height: 1.1; }
 .q p { font-size: 17px; color: var(--muted); margin: 10px 0 0; }
-.scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.scale { display: flex; flex-direction: column; gap: 8px; }
 .opt {
-  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 4px 12px;
-  border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface);
-  transition: transform .15s ease, background .2s, border-color .2s;
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px;
+  min-height: 56px; padding: 12px 16px; border-radius: 14px; text-align: left;
+  border: 1.5px solid var(--line); background: var(--surface);
+  transition: background .2s, border-color .2s;
 }
-.opt b { font-size: 26px; line-height: 1; font-variant-numeric: tabular-nums; }
-.opt small { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.15; }
-.opt.sel { border-color: var(--c); background: color-mix(in srgb, var(--c) 16%, var(--surface)); transform: translateY(-3px); }
-.opt.sel b { color: var(--c); }
-.opt.sel small { color: var(--ink); }
-.verdict { min-height: 24px; font-weight: 600; font-size: 15px; color: var(--muted); text-align: center; }
-.comment-toggle { background: none; border: 0; padding: 6px 0; color: var(--accent); font-weight: 600; align-self: flex-start; }
+.opt .meter { display: flex; align-items: flex-end; gap: 3px; flex: none; }
+.opt .meter i { width: 5px; border-radius: 2px; background: var(--line); }
+.opt .meter i.on { background: var(--c); }
+.opt .lab { font-size: 17px; font-weight: 600; }
+.opt:active { transform: scale(.99); }
+.opt.sel { border-color: var(--c); background: color-mix(in srgb, var(--c) 16%, var(--surface)); }
+/* Pause vor dem Weiterspringen: Linie läuft unten durch */
+.opt.going::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 4px; width: 100%;
+  background: var(--c); transform-origin: left; animation: going var(--ms, 800ms) linear both;
+}
+@keyframes going { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 textarea {
-  width: 100%; min-height: 96px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
-  color: var(--ink); padding: 12px 14px; font: inherit; font-size: 16px; resize: vertical;
+  width: 100%; min-height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); padding: 12px 14px; font: inherit; font-size: 16px; resize: none;
 }
+.in-next { animation: in-next .24s ease both; }
+.in-prev { animation: in-prev .24s ease both; }
+@keyframes in-next { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes in-prev { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
 
 /* Zusammenfassung */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; }
-.score { display: flex; align-items: baseline; gap: 8px; }
-.score b { font-size: 48px; line-height: 1; font-variant-numeric: tabular-nums; }
-.score span { color: var(--muted); }
+.score { display: flex; flex-direction: column; gap: 4px; }
+.score b { font-size: 26px; line-height: 1.15; font-weight: 750; }
+.score span { color: var(--muted); font-size: 14px; }
 .items { display: flex; flex-direction: column; }
-.item { padding: 14px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.item {
+  padding: 14px 0; border: 0; border-top: 1px solid var(--line); background: none; width: 100%; text-align: left;
+  display: flex; flex-direction: column; gap: 8px; min-width: 0;
+}
 .item:first-child { border-top: 0; padding-top: 4px; }
 .item .h { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .item .h strong { font-weight: 600; }
@@ -93,16 +107,7 @@ textarea {
 .item p { margin: 0; font-size: 14px; background: var(--bg); border-radius: 10px; padding: 8px 10px; overflow-wrap: anywhere; }
 .note { font-size: 13px; color: var(--muted); text-align: center; margin: 0; }
 
-.swipe-hint { margin: -12px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
-.q { touch-action: pan-y; transition: transform .2s ease, opacity .2s ease; }
-.screen#step { touch-action: pan-y; }
-.in-next { animation: in-next .24s ease both; }
-.in-prev { animation: in-prev .24s ease both; }
-@keyframes in-next { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
-@keyframes in-prev { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
-.shake { animation: shake .35s ease; }
-@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 .fade { animation: fade .28s ease both; }
 @keyframes fade { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .fade, .in-next, .in-prev, .shake { animation: none; } .opt, .btn, .q { transition: none; } }
-@media (max-width: 360px) { .opt small { font-size: 10px; } .q h2 { font-size: 28px; } }
+@media (prefers-reduced-motion: reduce) { .fade, .in-next, .in-prev { animation: none; } .opt, .btn { transition: none; } }
+@media (max-width: 360px) { .q h2 { font-size: 28px; } }

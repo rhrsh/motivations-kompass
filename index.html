@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <title>Motivations-Kompass</title>
   <meta name="description" content="Wöchentlicher Check: Wie gut sind meine Motivatoren erfüllt?">
   <meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
@@ -22,27 +22,23 @@
       <button class="pill" id="backBtn" type="button">← Zurück</button>
       <span class="eyebrow" id="stepCount">1 / 7</span>
     </div>
-    <div class="progress" id="progress"></div>
+    <div class="progress" id="progress" aria-label="Motivatoren"></div>
     <div class="q" id="qBox">
-      <span class="eyebrow">Motivator</span>
       <h2 id="qName"></h2>
       <p id="qText"></p>
     </div>
-    <div class="scale" id="scale" role="radiogroup" aria-label="Wie erfüllt?"></div>
-    <div class="verdict" id="verdict" aria-live="polite"></div>
-    <p class="swipe-hint" id="swipeHint" hidden>← Wischen für weiter</p>
-    <button class="comment-toggle" id="commentToggle" type="button">+ Kommentar hinzufügen</button>
-    <textarea id="comment" placeholder="Was steckt hinter der Zahl? (optional)" hidden></textarea>
     <div class="spacer"></div>
-    <button class="btn" id="nextBtn" type="button" disabled>Weiter</button>
+    <div class="scale" id="scale" role="radiogroup" aria-label="Wie erfüllt?"></div>
+    <textarea id="comment" rows="2" enterkeyhint="next" placeholder="Warum? (optional)"></textarea>
   </section>
 
   <!-- Bildschirm 2: Zusammenfassung -->
   <section class="screen" id="summary" hidden>
     <span class="eyebrow" id="sumWeek">KW</span>
     <h1>Dein Kompass diese Woche</h1>
-    <div class="card score"><b id="avg">–</b><span>von 5 im Schnitt</span></div>
+    <div class="card score"><span>Im Schnitt</span><b id="avg">–</b></div>
     <div class="card"><div class="items" id="items"></div></div>
+    <p class="note">Zum Ändern einen Motivator antippen.</p>
     <button class="btn ghost" id="editBtn" type="button">Neu bewerten</button>
     <button class="link" id="exportBtn" type="button">Daten sichern (Datei)</button>
     <p class="note" id="savedNote"></p>

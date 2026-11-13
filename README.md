@@ -15,6 +15,13 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |
 
+## Bedienung
+
+- Stufe antippen („Voll erfüllt“ … „Gar nicht erfüllt“) → nach kurzer Pause (`ADVANCE_MS` in `js/config.js`) kommt der nächste Motivator.
+- In der Pause ins Feld „Warum?“ tippen → die App wartet. Enter auf der Tastatur geht weiter.
+- Fortschrittsbalken antippen springt zu einem Motivator. In der Zusammenfassung einen Motivator antippen, um ihn zu ändern.
+- Intern werden die Stufen als 1 (gar nicht) bis 5 (voll) gespeichert; angezeigt werden nur Worte.
+
 ## Persönliche Motivatoren
 
 Die eigenen Motivatoren stehen bewusst nicht im öffentlichen Code. Sie werden einmalig über einen

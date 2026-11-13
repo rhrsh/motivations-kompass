@@ -19,3 +19,7 @@ export const SCALE = [
   { v: 4, label: "Weit­gehend", color: "var(--s4)", say: "Weitgehend erfüllt" },
   { v: 5, label: "Voll",            color: "var(--s5)", say: "Voll erfüllt" },
 ];
+
+// Pause nach dem Antippen einer Stufe, bevor der nächste Motivator kommt (Millisekunden).
+// In dieser Zeit kann man ins Kommentarfeld tippen, dann bleibt die App stehen.
+export const ADVANCE_MS = 800;

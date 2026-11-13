@@ -1,4 +1,4 @@
-import { DEFAULT_MOTIVES, SCALE } from "./config.js";
+import { DEFAULT_MOTIVES, SCALE, ADVANCE_MS } from "./config.js";
 import * as store from "./storage.js";
 
 store.applySetupFromHash();
@@ -6,8 +6,8 @@ const MOTIVES = store.loadMotives() || DEFAULT_MOTIVES;
 
 const $ = (id) => document.getElementById(id);
 
-// Tippen sofort auswerten. Chrome auf Android verschluckt sonst den ersten Tipp
-// bis etwa 1 Sekunde nach einem Wischen. Maus und Tastatur nutzen weiter „click“.
+// Tippen sofort auswerten. Chrome auf Android verschluckt sonst manchmal den ersten
+// Tipp direkt nach einer Bewegung. Maus und Tastatur nutzen weiter „click“.
 function onTap(el, fn) {
   let x = 0, y = 0, ok = false;
   el.addEventListener("touchstart", (e) => {
@@ -17,7 +17,7 @@ function onTap(el, fn) {
     const t = e.changedTouches[0];
     if (!ok || !t || Math.hypot(t.clientX - x, t.clientY - y) > 12) return;
     e.preventDefault(); // verhindert den zusätzlichen „click“, sonst zählt es doppelt
-    fn();
+    fn(e);
   });
   el.addEventListener("click", fn);
 }
@@ -37,6 +37,7 @@ const WEEK = isoWeek(new Date());
 const emptyCheck = () => ({ week: WEEK.key, ratings: {}, comments: {} });
 let check = store.loadDraft(WEEK.key) || emptyCheck();
 let step = 0;
+let fromSummary = false; // Korrektur aus der Zusammenfassung: danach dorthin zurück
 
 const average = (c) => {
   const v = MOTIVES.map((m) => c.ratings[m.id]).filter(Boolean);
@@ -50,17 +51,61 @@ function show(id) {
   window.scrollTo(0, 0);
 }
 
+function goTo(i, dir) {
+  cancelAdvance();
+  step = i; renderStep(dir); window.scrollTo(0, 0);
+}
+function goNext() {
+  cancelAdvance();
+  if (!fromSummary && step < MOTIVES.length - 1) { goTo(step + 1, 1); return; }
+  // letzter Motivator oder Korrektur: zum Ergebnis, sofern alles bewertet ist
+  const open = MOTIVES.findIndex((m) => !check.ratings[m.id]);
+  if (open >= 0) { goTo(open, 1); return; }
+  finish();
+}
+function goBack() { if (step > 0) goTo(step - 1, -1); }
+
+// ---- Weiter nach dem Antippen, mit kurzer Pause ----
+// In der Pause sieht man die Wahl und kann ins Kommentarfeld tippen, dann bleibt die App stehen.
+let timer = 0;
+function scheduleAdvance() {
+  cancelAdvance();
+  const sel = $("scale").querySelector(".sel");
+  sel?.style.setProperty("--ms", `${ADVANCE_MS}ms`);
+  sel?.classList.add("going");
+  timer = setTimeout(goNext, ADVANCE_MS);
+}
+function cancelAdvance() {
+  clearTimeout(timer); timer = 0;
+  for (const b of $("scale").children) b.classList.remove("going");
+}
+
 // ---- Schritt ----
-MOTIVES.forEach(() => $("progress").append(document.createElement("span")));
+MOTIVES.forEach((m, i) => {
+  const seg = document.createElement("button");
+  seg.type = "button"; seg.setAttribute("aria-label", m.name);
+  onTap(seg, () => goTo(i, i > step ? 1 : i < step ? -1 : 0));
+  $("progress").append(seg);
+});
 $("progress").style.gridTemplateColumns = `repeat(${MOTIVES.length}, 1fr)`;
-SCALE.forEach((s) => {
+
+// Höchste Stufe oben, damit es sich wie eine Füllstandsanzeige liest
+[...SCALE].reverse().forEach((s) => {
   const b = document.createElement("button");
   b.type = "button"; b.className = "opt"; b.setAttribute("role", "radio"); b.dataset.v = s.v;
   b.style.setProperty("--c", s.color);
-  const num = document.createElement("b"); num.textContent = s.v;
-  const lab = document.createElement("small"); lab.textContent = s.label;
-  b.append(num, lab);
+  const meter = document.createElement("span"); meter.className = "meter";
+  for (let i = 1; i <= SCALE.length; i++) {
+    const bar = document.createElement("i");
+    bar.style.height = `${6 + i * 3}px`; // ansteigend wie eine Füllstandsanzeige
+    if (i <= s.v) bar.className = "on";
+    meter.append(bar);
+  }
+  const lab = document.createElement("span"); lab.className = "lab"; lab.textContent = s.say;
+  b.append(meter, lab);
   onTap(b, () => choose(s.v));
+  // Fokus nicht vom Kommentarfeld wegnehmen (Tastatur bleibt offen)
+  b.addEventListener("mousedown", (e) => e.preventDefault());
   $("scale").append(b);
 });
 
@@ -72,23 +117,16 @@ function renderStep(dir = 0) {
   [...$("progress").children].forEach((el, i) => {
     el.className = i === step ? "now" : check.ratings[MOTIVES[i].id] ? "done" : "";
   });
-  const box = $("qBox"); box.style.transform = ""; box.style.opacity = "";
+  const box = $("qBox");
   box.classList.remove("fade", "in-next", "in-prev"); void box.offsetWidth;
   box.classList.add(dir > 0 ? "in-next" : dir < 0 ? "in-prev" : "fade");
   $("qName").textContent = m.name;
   $("qText").textContent = m.q;
-  [...$("scale").children].forEach((b) => {
+  for (const b of $("scale").children) {
     const on = Number(b.dataset.v) === r;
     b.classList.toggle("sel", on); b.setAttribute("aria-checked", String(on));
-  });
-  $("verdict").textContent = r ? SCALE[r - 1].say : "Tippe eine Zahl an";
-  $("swipeHint").hidden = !r;
-  const c = check.comments[m.id] || "";
-  $("comment").value = c;
-  $("comment").hidden = !c;
-  $("commentToggle").hidden = !!c;
-  $("nextBtn").disabled = !r;
-  $("nextBtn").textContent = step === MOTIVES.length - 1 ? "Ergebnis zeigen" : "Weiter";
+  }
+  $("comment").value = check.comments[m.id] || "";
 }
 
 function choose(v) {
@@ -96,96 +134,58 @@ function choose(v) {
   store.saveDraft(check);
   navigator.vibrate?.(8);
   renderStep();
+  // Wird gerade ein Kommentar geschrieben, nicht weiterspringen: Enter geht weiter
+  if (document.activeElement === $("comment")) return;
+  scheduleAdvance();
 }
 
+// ---- Kommentar ----
+$("comment").addEventListener("focus", cancelAdvance);
 $("comment").addEventListener("input", (e) => {
+  cancelAdvance();
   const id = MOTIVES[step].id;
   if (e.target.value.trim()) check.comments[id] = e.target.value; else delete check.comments[id];
   store.saveDraft(check);
 });
-onTap($("commentToggle"), () => {
-  $("comment").hidden = false; $("commentToggle").hidden = true; $("comment").focus();
+// Enter auf der Tastatur = weiter (sofern bewertet)
+$("comment").addEventListener("keydown", (e) => {
+  if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
+  e.preventDefault();
+  if (!check.ratings[MOTIVES[step].id]) return;
+  $("comment").blur();
+  goNext();
 });
 
-// Schutz gegen Doppeltipps auf „Weiter“
-let lockedUntil = 0;
-const lock = () => { lockedUntil = Date.now() + 300; };
-
-function goNext() {
-  if (Date.now() < lockedUntil) return;
-  if (!check.ratings[MOTIVES[step].id]) { nudge(); return; }
-  lock();
-  if (step < MOTIVES.length - 1) { step += 1; renderStep(1); window.scrollTo(0, 0); return; }
-  finish();
-}
-function goBack() {
-  if (Date.now() < lockedUntil || step === 0) return;
-  lock(); step -= 1; renderStep(-1);
-}
-// Noch keine Zahl gewählt: Skala kurz wackeln lassen statt weiterzugehen
-function nudge() {
-  const sc = $("scale"); sc.classList.remove("shake"); void sc.offsetWidth; sc.classList.add("shake");
-  $("verdict").textContent = "Erst eine Zahl antippen";
-  navigator.vibrate?.([10, 40, 10]);
-}
-
-onTap($("nextBtn"), goNext);
 onTap($("backBtn"), goBack);
 
-// ---- Wischen: nach links = weiter, nach rechts = zurück ----
-// Nur waagerechte Bewegungen zählen, damit Scrollen und Tippen normal funktionieren.
-let sx = 0, sy = 0, swiping = false, horizontal = null;
-const stepEl = $("step");
-stepEl.addEventListener("touchstart", (e) => {
-  if (e.touches.length !== 1 || e.target.closest("textarea")) { swiping = false; return; }
-  sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true; horizontal = null;
-}, { passive: true });
-stepEl.addEventListener("touchmove", (e) => {
-  if (!swiping) return;
-  const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
-  if (horizontal === null && Math.hypot(dx, dy) > 10) horizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
-  if (!horizontal) return;
-  // Karte folgt dem Finger ein Stück, damit man sieht, dass etwas passiert
-  const box = $("qBox");
-  box.classList.remove("fade", "in-next", "in-prev");
-  box.style.transition = "none";
-  box.style.transform = `translateX(${dx * 0.5}px)`;
-  box.style.opacity = String(1 - Math.min(Math.abs(dx) / 400, 0.5));
-}, { passive: true });
-const endSwipe = (e) => {
-  if (!swiping) return;
-  swiping = false;
-  const t = e.changedTouches[0];
-  const dx = t ? t.clientX - sx : 0;
-  const box = $("qBox"); box.style.transition = ""; box.style.transform = ""; box.style.opacity = "";
-  if (!horizontal || Math.abs(dx) < 60) return;
-  if (dx < 0) goNext(); else goBack();
-};
-stepEl.addEventListener("touchend", endSwipe);
-stepEl.addEventListener("touchcancel", endSwipe);
-
 // ---- Android: Zurück-Geste und Zurück-Taste ----
-// Ohne das würde die Zurück-Geste (Wischen vom Bildschirmrand) die App schließen.
-// So geht sie wie das Wischen nach rechts einen Motivator zurück.
+// Ohne das würde die Zurück-Geste die App schließen. So geht sie einen Motivator zurück.
 history.pushState({ kompass: 1 }, "");
 window.addEventListener("popstate", () => {
   if (!$("step").hidden && step > 0) {
-    step -= 1; renderStep(-1);
+    goBack();
+    history.pushState({ kompass: 1 }, "");
+  } else if (!$("step").hidden && fromSummary) {
+    fromSummary = false; renderSummary(); show("summary");
     history.pushState({ kompass: 1 }, "");
   } else {
     history.back(); // erster Motivator oder Zusammenfassung: App normal verlassen
   }
 });
 
-// Tastatur am Rechner: Pfeiltasten und 1–5
+// Tastatur am Rechner: Pfeiltasten und 1–5 (5 = voll erfüllt)
 document.addEventListener("keydown", (e) => {
   if ($("step").hidden || e.target.closest?.("textarea")) return;
-  if (e.key === "ArrowRight") goNext();
+  if (e.key === "ArrowRight" && check.ratings[MOTIVES[step].id]) goNext();
   else if (e.key === "ArrowLeft") goBack();
   else if (/^[1-5]$/.test(e.key)) choose(Number(e.key));
 });
 
+// App geht in den Hintergrund: nicht unbemerkt weiterspringen
+document.addEventListener("visibilitychange", () => { if (document.hidden) cancelAdvance(); });
+
 function finish() {
+  fromSummary = false;
   const done = { ...check, average: average(check), updatedAt: new Date().toISOString() };
   try {
     store.saveWeek(done);
@@ -199,17 +199,28 @@ function finish() {
 }
 
 // ---- Zusammenfassung ----
+const sayFor = (avg) => SCALE[Math.min(SCALE.length, Math.max(1, Math.round(avg))) - 1].say;
+
+// Version unten in der Zusammenfassung anzeigen, damit man sieht, was läuft
+function showVersion() {
+  window.caches?.keys().then((keys) => {
+    const k = keys.find((x) => x.startsWith("kompass-"));
+    $("version").textContent = k ? `Version ${k.replace("kompass-", "")}` : "";
+  }).catch(() => {});
+}
+
 function renderSummary() {
+  showVersion();
   $("sumWeek").textContent = `KW ${WEEK.w} · ${new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`;
   const avg = average(check);
-  $("avg").textContent = avg == null ? "–" : String(avg).replace(".", ",");
+  $("avg").textContent = avg == null ? "–" : sayFor(avg).toLowerCase();
   const box = $("items"); box.replaceChildren();
-  for (const m of MOTIVES) {
+  MOTIVES.forEach((m, i) => {
     const r = check.ratings[m.id] || 0;
-    const it = document.createElement("div"); it.className = "item";
+    const it = document.createElement("button"); it.type = "button"; it.className = "item";
     const h = document.createElement("div"); h.className = "h";
     const st = document.createElement("strong"); st.textContent = m.name;
-    const sp = document.createElement("span"); sp.textContent = r ? `${r} / 5` : "–";
+    const sp = document.createElement("span"); sp.textContent = r ? SCALE[r - 1].say : "–";
     h.append(st, sp);
     const bar = document.createElement("div"); bar.className = "bar";
     const fill = document.createElement("i");
@@ -218,12 +229,13 @@ function renderSummary() {
     it.append(h, bar);
     const c = (check.comments[m.id] || "").trim();
     if (c) { const p = document.createElement("p"); p.textContent = c; it.append(p); }
+    onTap(it, () => { fromSummary = true; step = i; renderStep(); show("step"); });
     box.append(it);
-  }
+  });
 }
 
 $("editBtn").addEventListener("click", () => {
-  check = emptyCheck(); step = 0; renderStep(); show("step");
+  check = emptyCheck(); fromSummary = false; step = 0; renderStep(); show("step");
 });
 $("exportBtn").addEventListener("click", () => store.exportFile());
 
@@ -258,8 +270,3 @@ if ("serviceWorker" in navigator) {
   }).catch(() => {});
 }
 
-// Version unten in der Zusammenfassung anzeigen, damit man sieht, was läuft
-window.caches?.keys().then((keys) => {
-  const k = keys.find((x) => x.startsWith("kompass-"));
-  if (k) $("version").textContent = `Version ${k.replace("kompass-", "")}`;
-}).catch(() => {});
