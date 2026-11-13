@@ -136,7 +136,9 @@ export async function exportFile() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = "motivations-kompass-" + new Date().toISOString().slice(0, 10) + ".json";
+  // Datum nach Ortszeit (toISOString wäre Weltzeit und zeigt kurz nach Mitternacht den Vortag)
+  const d = new Date(), pad = (n) => String(n).padStart(2, "0");
+  a.download = `motivations-kompass-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }

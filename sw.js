@@ -1,11 +1,12 @@
 // Service Worker: speichert die App-Dateien, damit sie offline startet.
 // Bei jeder Änderung an der App VERSION erhöhen, sonst sieht das Handy die alte Version.
-const VERSION = "v12";
+const VERSION = "v13";
 const CACHE = `kompass-${VERSION}`;
 const FILES = [
   "./", "./index.html", "./css/app.css",
   "./js/app.js", "./js/config.js", "./js/storage.js", "./js/faces.js", "./js/icons.js",
   "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png",
+  "./icons/icon-maskable-512.png", "./icons/apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (e) => {
