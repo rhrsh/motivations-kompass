@@ -10,7 +10,7 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 | `index.html` | Gerüst der drei Bildschirme (Start, Bewerten, Auswertung) |
 | `css/app.css` | Aussehen. Farben oben als Tokens |
 | `js/config.js` | **Inhalte:** neutrale Standard-Motivatoren, Skala |
-| `js/storage.js` | **Datenhaltung:** IndexedDB, Umzug alter Daten, Export |
+| `js/storage.js` | **Datenhaltung:** IndexedDB, Umzug alter Daten, Sichern und Laden |
 | `js/faces.js` | Die fünf Gesichter der Skala (SVG) |
 | `js/icons.js` | Neutraler Symbolkasten für die Motivatoren (Zuordnung im Einrichtungslink) |
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
@@ -20,7 +20,7 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 ## Bedienung
 
 - **Start** (beim Öffnen und nach jedem Neuladen): Kalenderwoche, Gesicht im Ring mit dem Stand der Woche, ein Knopf
-  („Woche bewerten“ / „Weiter bei …“ / „Ergebnis ansehen“). Unten „Daten sichern“ und die Versionsnummer.
+  („Woche bewerten“ / „Weiter bei …“ / „Ergebnis ansehen“). Unten „Daten sichern“, „Sicherung laden“ und die Versionsnummer.
 - **Bewerten:** Symbol des Motivators, Name, Leitfrage, darunter fünf Gesichter als Karten
   (links traurig/rot = 1, rechts lachend/grün = 5, ohne Text). Antippen → nach kurzer Pause (`ADVANCE_MS`) nächster Motivator.
   Ins Feld „Warum?“ tippen → die App wartet; „Weiter →“ unter dem Feld oder Enter geht weiter.
@@ -83,6 +83,9 @@ Start automatisch.
 ## Grenzen und nächste Schritte
 
 - Daten nur auf diesem Handy. Browser-Daten löschen = Daten weg → regelmäßig „Daten sichern“.
-- **Offen:** Import der Sicherungsdatei (heute nur Export), Verlauf über die Wochen (Daten werden schon gespeichert,
+- **Sicherung laden** führt die Datei mit den Daten auf dem Gerät zusammen: Gibt es einen Eintrag (Woche + Motivator)
+  doppelt, gewinnt der neuere. Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine
+  eingerichtet sind. Liest auch Sicherungen aus der Zeit vor v7.
+- **Offen:** Verlauf über die Wochen (Daten werden schon gespeichert,
   aber nicht angezeigt), Erinnerung an den Wochencheck.
 - Bewusst nicht: Mustererkennung, Cloud-Speicher, Konten.

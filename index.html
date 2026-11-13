@@ -26,7 +26,11 @@
     <div class="spacer"></div>
     <button class="btn" id="homeBtn" type="button">Woche bewerten</button>
     <div class="foot">
-      <button class="link small" id="exportBtn" type="button">Daten sichern</button>
+      <span class="foot-links">
+        <button class="link small" id="exportBtn" type="button">Daten sichern</button>
+        <button class="link small" id="importBtn" type="button">Sicherung laden</button>
+      </span>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
       <span id="version"></span>
     </div>
   </section>

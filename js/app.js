@@ -310,6 +310,10 @@ function renderHome() {
   }
   setGauge($("homeGauge"), n ? avg : null);
   if (dbError) $("homeText").textContent = "Speichern auf diesem Gerät ist gerade nicht möglich.";
+  // Einmalige Meldung nach dem Laden einer Sicherung
+  let notice = null;
+  try { notice = sessionStorage.getItem("kompass:notice"); sessionStorage.removeItem("kompass:notice"); } catch {}
+  if (notice) $("homeText").textContent = notice;
 }
 onTap($("homeBtn"), () => {
   if (MOTIVES.every((m) => ratingOf(m.id))) { renderSummary(); show("summary"); }
@@ -331,6 +335,24 @@ onTap($("redoBtn"), async () => {
 });
 onTap($("doneBtn"), goHome);
 $("exportBtn").addEventListener("click", () => store.exportFile());
+// „Sicherung laden“: Datei wählen, zusammenführen, dann neu laden (Motivatoren können sich ändern)
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file) return;
+  let msg;
+  try {
+    const r = await store.importFile(file);
+    msg = r.added
+      ? `Sicherung geladen: ${r.added} Einträge aus ${r.weeks} ${r.weeks === 1 ? "Woche" : "Wochen"} übernommen.`
+      : "Sicherung geladen. Alles war schon auf dem Gerät.";
+    if (r.motivesTaken) msg += " Motivatoren übernommen.";
+  } catch {
+    msg = "Diese Datei konnte nicht geladen werden. Ist es eine Sicherung des Motivations-Kompass?";
+  }
+  try { sessionStorage.setItem("kompass:notice", msg); } catch {}
+  location.reload();
+});
 
 // ---- Beim Öffnen und nach jedem Neuladen: Start ----
 if (dbError) flashSaved(false);

@@ -143,6 +143,47 @@ export async function exportFile() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+// Sicherung einspielen: führt die Datei mit den vorhandenen Daten zusammen.
+// Gibt es einen Eintrag (Woche + Motivator) doppelt, gewinnt der neuere (updatedAt).
+// Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine eingerichtet sind.
+// Liest das heutige Format (motivations-kompass/2) und das alte aus der localStorage-Zeit.
+export async function importFile(file) {
+  const data = JSON.parse(await file.text());
+  const rows = [];
+  if (data?.format === "motivations-kompass/2") {
+    for (const [week, ms] of Object.entries(data.weeks || {}))
+      for (const [motive, e] of Object.entries(ms || {}))
+        rows.push({ week, motive, rating: e.rating ?? null, comment: e.comment ?? "", updatedAt: e.updatedAt || "" });
+  } else if (data && typeof data === "object" && !Array.isArray(data)) {
+    for (const [week, c] of Object.entries(data)) { // altes Format: { "2026-W45": { ratings, comments, updatedAt } }
+      if (!/^\d{4}-W\d{2}$/.test(week)) continue;
+      const ids = new Set([...Object.keys(c?.ratings || {}), ...Object.keys(c?.comments || {})]);
+      for (const motive of ids)
+        rows.push({ week, motive, rating: c.ratings?.[motive] ?? null, comment: c.comments?.[motive] ?? "", updatedAt: c.updatedAt || "" });
+    }
+  }
+  const valid = rows.filter((r) => /^\d{4}-W\d{2}$/.test(r.week) && r.motive
+    && (r.rating === null || [1, 2, 3, 4, 5].includes(r.rating)) && typeof r.comment === "string");
+  if (!valid.length) throw new Error("Keine Bewertungen in der Datei gefunden");
+
+  const tx = (await db()).transaction(["entries", "settings"], "readwrite");
+  const entries = tx.objectStore("entries"), settings = tx.objectStore("settings");
+  let added = 0;
+  for (const r of valid) {
+    const old = await done(entries.get([r.week, r.motive]));
+    if (old && (old.updatedAt || "") >= r.updatedAt) continue;
+    entries.put({ ...r, updatedAt: r.updatedAt || new Date().toISOString() });
+    added++;
+  }
+  let motivesTaken = false;
+  if (Array.isArray(data.motives) && data.motives.length && data.motives.every((x) => x.id && x.name)
+      && !(await done(settings.get("motives")))) {
+    settings.put({ key: "motives", value: data.motives }); motivesTaken = true;
+  }
+  await committed(tx);
+  return { added, weeks: new Set(valid.map((r) => r.week)).size, motivesTaken };
+}
+
 // Einrichtungslink: ...#setup=<base64url-JSON>. Der Teil nach # wird nie an den Server geschickt.
 export async function applySetupFromHash() {
   const m = location.hash.match(/^#setup=([A-Za-z0-9_-]+)$/);
