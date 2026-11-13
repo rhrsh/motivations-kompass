@@ -19,10 +19,25 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 
 ## Bedienung
 
-- Stufe antippen („Voll erfüllt“ … „Gar nicht erfüllt“) → nach kurzer Pause (`ADVANCE_MS` in `js/config.js`) kommt der nächste Motivator.
-- In der Pause ins Feld „Warum?“ tippen → die App wartet. Enter auf der Tastatur geht weiter.
-- Fortschrittsbalken antippen springt zu einem Motivator. In der Zusammenfassung einen Motivator antippen, um ihn zu ändern.
-- Intern werden die Stufen als 1 (gar nicht) bis 5 (voll) gespeichert; angezeigt werden nur Worte.
+- **Start** (beim Öffnen und nach jedem Neuladen): Kalenderwoche, Gesicht im Ring mit dem Stand der Woche, ein Knopf
+  („Woche bewerten“ / „Weiter bei …“ / „Ergebnis ansehen“). Unten „Daten sichern“ und die Versionsnummer.
+- **Bewerten:** Symbol des Motivators, Name, Leitfrage, darunter fünf Gesichter als Karten
+  (links traurig/rot = 1, rechts lachend/grün = 5, ohne Text). Antippen → nach kurzer Pause (`ADVANCE_MS`) nächster Motivator.
+  Ins Feld „Warum?“ tippen → die App wartet; „Weiter →“ unter dem Feld oder Enter geht weiter.
+  Unten: runder Zurück-Knopf (auf Motivator 1 zum Start), Zähler, Fortschrittsbalken (antippen springt).
+- **Auswertung** (passt ohne Scrollen auf ein Pixel-Handy): Gesamt-Gesicht im Ring, eine Zeile je Motivator mit
+  Gesicht und Symbol, Kommentare per Sprechblase aufklappbar. Zeile antippen = ändern.
+  „Neu ausfüllen“ löscht die Bewertungen der Woche (zweiter Tipp bestätigt), „Fertig“ führt zum Start.
+- Android-Zurück-Geste: ein Motivator zurück bzw. zum Start; vom Start aus wird die App verlassen.
+
+## Gestaltung
+
+- Hell und luftig: großer weicher Kreis im Hintergrund, weiße Karten mit sanften Schatten, zentrierte Inhalte,
+  runde Pillen-Knöpfe, Akzentfarbe Petrol. Dunkler Modus mit gleichem Aufbau.
+- Gesichter (`js/faces.js`): eigene SVG-Zeichnung mit leichtem Glanz und Schatten. Die Mimik trägt die Bedeutung,
+  die Farbe unterstützt sie.
+- Ring (`.gauge`): füllt sich mit dem Durchschnitt von Rot nach Grün (`--p` in Prozent).
+- Symbole (`js/icons.js`): einfache Strichzeichnungen, verfügbar: key, blocks, heart, star, target, bird, sprout.
 
 ## Persönliche Motivatoren
 
@@ -30,6 +45,14 @@ Die eigenen Motivatoren stehen bewusst nicht im öffentlichen Code. Sie werden e
 Einrichtungslink aufs Handy geladen: `…/motivations-kompass/#setup=<base64url-JSON>`.
 Der Teil nach `#` wird vom Browser nie an den Server geschickt. Die App speichert die Liste
 in der IndexedDB (`settings` → `motives`) und entfernt den Teil aus der Adresse.
+
+Format der Liste (JSON, UTF-8, dann base64url ohne `=`):
+
+```json
+[{ "id": "beispiel", "name": "Beispiel", "q": "Leitfrage?", "icon": "key" }]
+```
+
+`id` nie ändern, sonst verlieren alte Bewertungen ihren Bezug. `icon` ist einer der Namen aus `js/icons.js`.
 
 ## Datenmodell
 
@@ -57,7 +80,9 @@ Start automatisch.
 4. Auf dem Handy: App öffnen oder aus dem Hintergrund holen. Die App lädt sich dann selbst neu.
    Welche Version läuft, steht unten in der Zusammenfassung.
 
-## Grenzen v1
+## Grenzen und nächste Schritte
 
 - Daten nur auf diesem Handy. Browser-Daten löschen = Daten weg → regelmäßig „Daten sichern“.
-- Kein Verlauf über die Zeit, keine Mustererkennung (bewusst out of scope).
+- **Offen:** Import der Sicherungsdatei (heute nur Export), Verlauf über die Wochen (Daten werden schon gespeichert,
+  aber nicht angezeigt), Erinnerung an den Wochencheck.
+- Bewusst nicht: Mustererkennung, Cloud-Speicher, Konten.
