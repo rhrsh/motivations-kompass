@@ -1,6 +1,6 @@
 // Service Worker: speichert die App-Dateien, damit sie offline startet.
 // Bei jeder Änderung an der App VERSION erhöhen, sonst sieht das Handy die alte Version.
-const VERSION = "v4";
+const VERSION = "v5";
 const CACHE = `kompass-${VERSION}`;
 const FILES = [
   "./", "./index.html", "./css/app.css",
@@ -12,10 +12,12 @@ self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
 
+// Neue Version übernimmt sofort und löscht alte Kopien.
+// Die geöffnete App merkt die Übernahme und lädt sich selbst neu (siehe app.js).
 self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("kompass-") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

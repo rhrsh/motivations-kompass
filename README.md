@@ -37,8 +37,8 @@ Ein Eintrag pro Kalenderwoche im `localStorage` unter `kompass:checks`:
 1. Code ändern, committen, auf `main` pushen.
 2. In `sw.js` die `VERSION` erhöhen.
 3. GitHub Pages baut automatisch neu (ca. 1 Minute).
-4. Auf dem Handy: App öffnen oder aus dem Hintergrund holen. Oben erscheint „Neue Version verfügbar – tippen zum Laden“.
-   Ein frischer Start der App lädt die neue Version direkt.
+4. Auf dem Handy: App öffnen oder aus dem Hintergrund holen. Die App lädt sich dann selbst neu.
+   Welche Version läuft, steht unten in der Zusammenfassung.
 
 ## Grenzen v1
 

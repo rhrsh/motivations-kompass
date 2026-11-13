@@ -6,6 +6,22 @@ const MOTIVES = store.loadMotives() || DEFAULT_MOTIVES;
 
 const $ = (id) => document.getElementById(id);
 
+// Tippen sofort auswerten. Chrome auf Android verschluckt sonst den ersten Tipp
+// bis etwa 1 Sekunde nach einem Wischen. Maus und Tastatur nutzen weiter „click“.
+function onTap(el, fn) {
+  let x = 0, y = 0, ok = false;
+  el.addEventListener("touchstart", (e) => {
+    ok = e.touches.length === 1; x = e.touches[0].clientX; y = e.touches[0].clientY;
+  }, { passive: true });
+  el.addEventListener("touchend", (e) => {
+    const t = e.changedTouches[0];
+    if (!ok || !t || Math.hypot(t.clientX - x, t.clientY - y) > 12) return;
+    e.preventDefault(); // verhindert den zusätzlichen „click“, sonst zählt es doppelt
+    fn();
+  });
+  el.addEventListener("click", fn);
+}
+
 // ---- Kalenderwoche (ISO) ----
 function isoWeek(d) {
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -44,7 +60,7 @@ SCALE.forEach((s) => {
   const num = document.createElement("b"); num.textContent = s.v;
   const lab = document.createElement("small"); lab.textContent = s.label;
   b.append(num, lab);
-  b.addEventListener("click", () => choose(s.v));
+  onTap(b, () => choose(s.v));
   $("scale").append(b);
 });
 
@@ -87,7 +103,7 @@ $("comment").addEventListener("input", (e) => {
   if (e.target.value.trim()) check.comments[id] = e.target.value; else delete check.comments[id];
   store.saveDraft(check);
 });
-$("commentToggle").addEventListener("click", () => {
+onTap($("commentToggle"), () => {
   $("comment").hidden = false; $("commentToggle").hidden = true; $("comment").focus();
 });
 
@@ -113,8 +129,8 @@ function nudge() {
   navigator.vibrate?.([10, 40, 10]);
 }
 
-$("nextBtn").addEventListener("click", goNext);
-$("backBtn").addEventListener("click", goBack);
+onTap($("nextBtn"), goNext);
+onTap($("backBtn"), goBack);
 
 // ---- Wischen: nach links = weiter, nach rechts = zurück ----
 // Nur waagerechte Bewegungen zählen, damit Scrollen und Tippen normal funktionieren.
@@ -147,6 +163,19 @@ const endSwipe = (e) => {
 };
 stepEl.addEventListener("touchend", endSwipe);
 stepEl.addEventListener("touchcancel", endSwipe);
+
+// ---- Android: Zurück-Geste und Zurück-Taste ----
+// Ohne das würde die Zurück-Geste (Wischen vom Bildschirmrand) die App schließen.
+// So geht sie wie das Wischen nach rechts einen Motivator zurück.
+history.pushState({ kompass: 1 }, "");
+window.addEventListener("popstate", () => {
+  if (!$("step").hidden && step > 0) {
+    step -= 1; renderStep(-1);
+    history.pushState({ kompass: 1 }, "");
+  } else {
+    history.back(); // erster Motivator oder Zusammenfassung: App normal verlassen
+  }
+});
 
 // Tastatur am Rechner: Pfeiltasten und 1–5
 document.addEventListener("keydown", (e) => {
@@ -212,18 +241,25 @@ store.requestPersistence();
 
 // ---- Offline-Fähigkeit und Updates ----
 // Neue Version wird erkannt, sobald sich sw.js geändert hat (VERSION erhöht).
-// Dann erscheint oben ein Hinweis. Tippen lädt neu; der Entwurf bleibt gespeichert.
+// Übernimmt eine neue Version, lädt die App sich einmal selbst neu. Entwürfe
+// (auch Kommentare, bei jedem Tastendruck) sind gespeichert, es geht nichts verloren.
 if ("serviceWorker" in navigator) {
-  const hadController = !!navigator.serviceWorker.controller;
+  const hadController = !!navigator.serviceWorker.controller; // beim allerersten Start: kein Update
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadController || reloading) return;
+    reloading = true; location.reload();
+  });
   navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).then((reg) => {
     // Beim Zurückholen aus dem Hintergrund nach einer neuen Version fragen
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") reg.update().catch(() => {});
     });
   }).catch(() => {});
-  // Beim allerersten Start übernimmt der Service Worker auch – das ist kein Update
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (hadController) $("updateBar").hidden = false;
-  });
 }
-$("updateBar").addEventListener("click", () => location.reload());
+
+// Version unten in der Zusammenfassung anzeigen, damit man sieht, was läuft
+window.caches?.keys().then((keys) => {
+  const k = keys.find((x) => x.startsWith("kompass-"));
+  if (k) $("version").textContent = `Version ${k.replace("kompass-", "")}`;
+}).catch(() => {});
