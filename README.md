@@ -7,10 +7,11 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 
 | Datei | Wofür |
 |---|---|
-| `index.html` | Gerüst der beiden Bildschirme (Bewerten, Zusammenfassung) |
+| `index.html` | Gerüst der drei Bildschirme (Start, Bewerten, Auswertung) |
 | `css/app.css` | Aussehen. Farben oben als Tokens |
 | `js/config.js` | **Inhalte:** neutrale Standard-Motivatoren, Skala |
 | `js/storage.js` | **Datenhaltung:** IndexedDB, Umzug alter Daten, Export |
+| `js/faces.js` | Die fünf Gesichter der Skala (SVG) |
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |

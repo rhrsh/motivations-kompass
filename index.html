@@ -16,8 +16,26 @@
 <body>
 <div class="app">
 
-  <!-- Bildschirm 1: ein Motivator pro Schritt -->
-  <section class="screen" id="step">
+  <!-- Start: Status der Woche und ein Knopf -->
+  <section class="screen" id="home">
+    <span class="eyebrow" id="homeWeek">KW</span>
+    <h1>Motivations-Kompass</h1>
+    <div class="spacer"></div>
+    <div class="status" id="homeStatus">
+      <div class="status-face" id="homeFace"></div>
+      <p class="status-text" id="homeText"></p>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="homeBtn" type="button">Woche bewerten</button>
+    <button class="link" id="homeRedo" type="button" hidden>Nochmal durchgehen</button>
+    <div class="foot">
+      <button class="link small" id="exportBtn" type="button">Daten sichern</button>
+      <span id="version"></span>
+    </div>
+  </section>
+
+  <!-- Bewerten: ein Motivator pro Schritt -->
+  <section class="screen" id="step" hidden>
     <div class="top">
       <button class="pill" id="backBtn" type="button">← Zurück</button>
       <span class="saved" id="saveState" aria-live="polite"></span>
@@ -33,17 +51,17 @@
     <textarea id="comment" rows="2" enterkeyhint="next" placeholder="Warum? (optional)"></textarea>
   </section>
 
-  <!-- Bildschirm 2: Zusammenfassung -->
+  <!-- Auswertung: passt ohne Scrollen auf einen Bildschirm -->
   <section class="screen" id="summary" hidden>
     <span class="eyebrow" id="sumWeek">KW</span>
-    <h1>Dein Kompass diese Woche</h1>
-    <div class="card score"><span>Im Schnitt</span><b id="avg">–</b></div>
+    <div class="overall">
+      <div id="avgFace"></div>
+      <div><span class="muted">Im Schnitt</span><b id="avg">–</b></div>
+    </div>
     <div class="card"><div class="items" id="items"></div></div>
     <p class="note">Zum Ändern einen Motivator antippen.</p>
-    <button class="btn ghost" id="editBtn" type="button">Nochmal durchgehen</button>
-    <button class="link" id="exportBtn" type="button">Daten sichern (Datei)</button>
-    <p class="note" id="savedNote"></p>
-    <p class="note" id="version"></p>
+    <div class="spacer"></div>
+    <button class="btn" id="doneBtn" type="button">Fertig</button>
   </section>
 
 </div>

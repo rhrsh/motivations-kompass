@@ -1,5 +1,6 @@
 import { DEFAULT_MOTIVES, SCALE, ADVANCE_MS } from "./config.js";
 import * as store from "./storage.js";
+import { face } from "./faces.js";
 
 // Datenbank vorbereiten: einmalig alte Daten übernehmen, ggf. Einrichtungslink anwenden
 let dbError = null;
@@ -52,7 +53,8 @@ const firstOpen = () => Math.max(0, MOTIVES.findIndex((m) => !ratingOf(m.id)));
 
 // ---- Navigation ----
 function show(id) {
-  for (const s of ["step", "summary"]) $(s).hidden = s !== id;
+  for (const s of ["home", "step", "summary"]) $(s).hidden = s !== id;
+  if (id !== "home") leaveHome();
   window.scrollTo(0, 0);
 }
 
@@ -68,21 +70,23 @@ function goNext() {
   if (open >= 0) { goTo(open, 1); return; }
   finish();
 }
-function goBack() { if (step > 0) goTo(step - 1, -1); }
+function goBack() { if (step > 0) goTo(step - 1, -1); else goHome(); }
 
 // ---- Weiter nach dem Antippen, mit kurzer Pause ----
 // In der Pause sieht man die Wahl und kann ins Kommentarfeld tippen, dann bleibt die App stehen.
 let timer = 0;
 function scheduleAdvance() {
   cancelAdvance();
-  const sel = $("scale").querySelector(".sel");
-  sel?.style.setProperty("--ms", `${ADVANCE_MS}ms`);
-  sel?.classList.add("going");
+  const r = ratingOf(MOTIVES[step].id);
+  $("scale").style.setProperty("--ms", `${ADVANCE_MS}ms`);
+  $("scale").style.setProperty("--sel-c", `var(--s${r})`);
+  $("scale").classList.remove("going"); void $("scale").offsetWidth;
+  $("scale").classList.add("going");
   timer = setTimeout(goNext, ADVANCE_MS);
 }
 function cancelAdvance() {
   clearTimeout(timer); timer = 0;
-  for (const b of $("scale").children) b.classList.remove("going");
+  $("scale").classList.remove("going");
 }
 
 // ---- Schritt ----
@@ -94,21 +98,13 @@ MOTIVES.forEach((m, i) => {
 });
 $("progress").style.gridTemplateColumns = `repeat(${MOTIVES.length}, 1fr)`;
 
-// Höchste Stufe oben, damit es sich wie eine Füllstandsanzeige liest
-[...SCALE].reverse().forEach((s) => {
+// Fünf Gesichter in einer Reihe: links „gar nicht“, rechts „voll erfüllt“
+SCALE.forEach((sc) => {
   const b = document.createElement("button");
-  b.type = "button"; b.className = "opt"; b.setAttribute("role", "radio"); b.dataset.v = s.v;
-  b.style.setProperty("--c", s.color);
-  const meter = document.createElement("span"); meter.className = "meter";
-  for (let i = 1; i <= SCALE.length; i++) {
-    const bar = document.createElement("i");
-    bar.style.height = `${6 + i * 3}px`; // ansteigend wie eine Füllstandsanzeige
-    if (i <= s.v) bar.className = "on";
-    meter.append(bar);
-  }
-  const lab = document.createElement("span"); lab.className = "lab"; lab.textContent = s.say;
-  b.append(meter, lab);
-  onTap(b, () => choose(s.v));
+  b.type = "button"; b.className = "opt"; b.setAttribute("role", "radio"); b.dataset.v = sc.v;
+  b.setAttribute("aria-label", sc.say);
+  b.innerHTML = face(sc.v);
+  onTap(b, () => choose(sc.v));
   // Fokus nicht vom Kommentarfeld wegnehmen (Tastatur bleibt offen)
   b.addEventListener("mousedown", (e) => e.preventDefault());
   $("scale").append(b);
@@ -117,7 +113,6 @@ $("progress").style.gridTemplateColumns = `repeat(${MOTIVES.length}, 1fr)`;
 function renderStep(dir = 0) {
   const m = MOTIVES[step];
   const r = ratingOf(m.id);
-  $("backBtn").style.visibility = step === 0 ? "hidden" : "visible";
   $("stepCount").textContent = `${step + 1} / ${MOTIVES.length}`;
   [...$("progress").children].forEach((el, i) => {
     el.className = i === step ? "now" : ratingOf(MOTIVES[i].id) ? "done" : "";
@@ -131,6 +126,7 @@ function renderStep(dir = 0) {
     const on = Number(b.dataset.v) === r;
     b.classList.toggle("sel", on); b.setAttribute("aria-checked", String(on));
   }
+  $("scale").classList.toggle("has-sel", !!r);
   $("comment").value = commentOf(m.id);
 }
 
@@ -181,20 +177,25 @@ $("comment").addEventListener("keydown", (e) => {
 onTap($("backBtn"), goBack);
 
 // ---- Android: Zurück-Geste und Zurück-Taste ----
-// Ohne das würde die Zurück-Geste die App schließen. So geht sie einen Motivator zurück.
-history.pushState({ kompass: 1 }, "");
+// Der Start ist die Wurzel. Verlässt man ihn, gibt es einen Eintrag im Verlauf,
+// damit die Zurück-Geste in der App bleibt statt sie zu schließen.
+let pushed = false, ignorePop = false;
+function leaveHome() { if (!pushed) { history.pushState({ kompass: 1 }, ""); pushed = true; } }
+function goHome() {
+  cancelAdvance(); fromSummary = false;
+  renderHome(); $("home").hidden = false; $("step").hidden = true; $("summary").hidden = true;
+  window.scrollTo(0, 0);
+  if (pushed) { ignorePop = true; history.back(); }
+}
 window.addEventListener("popstate", () => {
   // Einrichtungslink bei schon geöffneter App: neu laden, dann wird er angewendet
   if (location.hash.startsWith("#setup=")) { location.reload(); return; }
-  if (!$("step").hidden && step > 0) {
-    goBack();
-    history.pushState({ kompass: 1 }, "");
-  } else if (!$("step").hidden && fromSummary) {
-    fromSummary = false; renderSummary(); show("summary");
-    history.pushState({ kompass: 1 }, "");
-  } else {
-    history.back(); // erster Motivator oder Zusammenfassung: App normal verlassen
-  }
+  if (ignorePop) { ignorePop = false; pushed = false; return; }
+  pushed = false;
+  if (!$("step").hidden && step > 0 && !fromSummary) { goTo(step - 1, -1); leaveHome(); }
+  else if (!$("step").hidden && fromSummary) { fromSummary = false; renderSummary(); show("summary"); }
+  else if (!$("home").hidden) { history.back(); } // Start: App normal verlassen
+  else { renderHome(); show("home"); }
 });
 
 // Tastatur am Rechner: Pfeiltasten und 1–5 (5 = voll erfüllt)
@@ -225,46 +226,74 @@ function showVersion() {
   }).catch(() => {});
 }
 
+const BUBBLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>';
+
 function renderSummary() {
-  showVersion();
-  const last = Object.values(entries).map((e) => e.updatedAt).filter(Boolean).sort().pop();
-  $("savedNote").textContent = dbError
-    ? "Speichern auf diesem Gerät ist gerade nicht möglich."
-    : "Jede Eingabe wird sofort auf diesem Gerät gespeichert." +
-      (last ? ` Zuletzt ${new Date(last).toLocaleString("de-DE", { weekday: "short", hour: "2-digit", minute: "2-digit" })} Uhr.` : "");
-  $("sumWeek").textContent = `KW ${WEEK.w} · ${new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })}`;
+  $("sumWeek").textContent = `KW ${WEEK.w} · ${dateLabel()}`;
   const avg = average();
   $("avg").textContent = avg == null ? "–" : sayFor(avg).toLowerCase();
+  $("avgFace").innerHTML = avg == null ? "" : face(Math.round(avg));
   const box = $("items"); box.replaceChildren();
   MOTIVES.forEach((m, i) => {
     const r = ratingOf(m.id);
+    const row = document.createElement("div"); row.className = "row";
+    const main = document.createElement("div"); main.className = "row-main";
     const it = document.createElement("button"); it.type = "button"; it.className = "item";
-    const h = document.createElement("div"); h.className = "h";
+    const mini = document.createElement("span");
+    if (r) { mini.className = "mini"; mini.innerHTML = face(r, SCALE[r - 1].say); } else mini.className = "mini empty";
     const st = document.createElement("strong"); st.textContent = m.name;
-    const sp = document.createElement("span"); sp.textContent = r ? SCALE[r - 1].say : "–";
-    h.append(st, sp);
-    const bar = document.createElement("div"); bar.className = "bar";
-    const fill = document.createElement("i");
-    fill.style.width = `${r * 20}%`; fill.style.setProperty("--c", SCALE[(r || 1) - 1].color);
-    bar.append(fill);
-    it.append(h, bar);
-    const c = commentOf(m.id).trim();
-    if (c) { const p = document.createElement("p"); p.textContent = c; it.append(p); }
+    it.append(mini, st);
     onTap(it, () => { fromSummary = true; step = i; renderStep(); show("step"); });
-    box.append(it);
+    main.append(it);
+    const c = commentOf(m.id).trim();
+    if (c) {
+      const cb = document.createElement("button"); cb.type = "button"; cb.className = "cbtn";
+      cb.setAttribute("aria-label", "Kommentar zeigen"); cb.setAttribute("aria-expanded", "false");
+      cb.innerHTML = BUBBLE;
+      const p = document.createElement("p"); p.className = "ctext"; p.textContent = c; p.hidden = true;
+      onTap(cb, () => { p.hidden = !p.hidden; cb.setAttribute("aria-expanded", String(!p.hidden)); });
+      main.append(cb); row.append(main, p);
+    } else row.append(main);
+    box.append(row);
   });
 }
 
-$("editBtn").addEventListener("click", () => {
-  // Nichts wird gelöscht: man geht die Woche von vorn durch, die Auswahl ist vorbelegt
-  fromSummary = false; step = 0; renderStep(); show("step");
+// ---- Start ----
+const dateLabel = () => new Date().toLocaleDateString("de-DE", { day: "numeric", month: "long" });
+function renderHome() {
+  showVersion();
+  $("homeWeek").textContent = `KW ${WEEK.w} · ${dateLabel()}`;
+  const n = MOTIVES.filter((m) => ratingOf(m.id)).length;
+  const avg = average();
+  const fc = $("homeFace");
+  $("homeRedo").hidden = n < MOTIVES.length;
+  if (n === MOTIVES.length) {
+    fc.className = "status-face"; fc.innerHTML = face(Math.round(avg));
+    $("homeText").innerHTML = "";
+    $("homeText").append("Diese Woche erledigt. Im Schnitt ", Object.assign(document.createElement("b"), { textContent: sayFor(avg).toLowerCase() }), ".");
+    $("homeBtn").textContent = "Ergebnis ansehen";
+  } else if (n > 0) {
+    fc.className = "status-face"; fc.innerHTML = face(Math.round(avg));
+    $("homeText").textContent = `${n} von ${MOTIVES.length} Motivatoren bewertet.`;
+    $("homeBtn").textContent = `Weiter bei ${MOTIVES[firstOpen()].name}`;
+  } else {
+    fc.className = "status-face empty"; fc.innerHTML = face(3);
+    $("homeText").textContent = "Diese Woche noch nicht bewertet. Dauert etwa zwei Minuten.";
+    $("homeBtn").textContent = "Woche bewerten";
+  }
+  if (dbError) $("homeText").textContent = "Speichern auf diesem Gerät ist gerade nicht möglich.";
+}
+onTap($("homeBtn"), () => {
+  if (MOTIVES.every((m) => ratingOf(m.id))) { renderSummary(); show("summary"); }
+  else { fromSummary = false; step = firstOpen(); renderStep(); show("step"); }
 });
+onTap($("homeRedo"), () => { fromSummary = false; step = 0; renderStep(); show("step"); });
+onTap($("doneBtn"), goHome);
 $("exportBtn").addEventListener("click", () => store.exportFile());
 
-// ---- Start: Woche komplett → Ergebnis, sonst erste offene Frage ----
+// ---- Beim Öffnen und nach jedem Neuladen: Start ----
 if (dbError) flashSaved(false);
-if (MOTIVES.every((m) => ratingOf(m.id))) { renderSummary(); show("summary"); }
-else { step = firstOpen(); renderStep(); show("step"); }
+renderHome();
 
 // Neue Kalenderwoche, während die App offen war: neu starten, damit der neue Datensatz gilt
 document.addEventListener("visibilitychange", () => {
