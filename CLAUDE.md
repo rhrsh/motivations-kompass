@@ -14,4 +14,5 @@ Aufbau und Datenmodell: siehe README.md.
 - Keine persönlichen Daten ins Repository: keine Namen, E-Mail-Adressen, Arbeitgeber, Firmen, Kollegen, Orte.
 - Die persönlichen Motivatoren des Nutzers stehen nie im Code. Sie werden per Einrichtungslink (`#setup=…`) aufs Gerät geladen. `DEFAULT_MOTIVES` in `js/config.js` bleibt neutral.
 - Bewertungen und Kommentare bleiben im Browser des Nutzers. Keine Analyse-Tools, keine Server-Aufrufe, kein Tracking.
-- Commit-Autor nur über die noreply-Adresse von GitHub.
+- Commit-Autor und Committer nur über die noreply-Adresse von GitHub: `rhrsh <356160256+rhrsh@users.noreply.github.com>`. Vor dem ersten Commit einer Sitzung `git config user.name` und `git config user.email` darauf setzen und nach dem Commit mit `git log -1 --format='%an <%ae> / %cn <%ce>'` prüfen.
+- Keine Sitzungs-Links (z. B. `Claude-Session: …`) in Commit-Nachrichten oder Pull Requests. Erlaubt ist nur `Co-Authored-By: Claude … <noreply@anthropic.com>`.
