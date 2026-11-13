@@ -105,6 +105,9 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
   background: var(--sel-c, var(--accent)); transform-origin: left; animation: going var(--ms, 800ms) linear both;
 }
 @keyframes going { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Kommentar mit „Weiter“, der nur beim Schreiben erscheint */
+.cbox { display: flex; flex-direction: column; gap: 10px; }
+.btn.next { width: auto; align-self: flex-end; padding: 12px 22px; font-size: 16px; }
 textarea {
   width: 100%; min-height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
   color: var(--ink); padding: 12px 14px; font: inherit; font-size: 16px; resize: none;

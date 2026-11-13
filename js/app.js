@@ -128,6 +128,7 @@ function renderStep(dir = 0) {
   }
   $("scale").classList.toggle("has-sel", !!r);
   $("comment").value = commentOf(m.id);
+  updateCommentNext();
 }
 
 // ---- Speichern: jede Eingabe sofort als Datensatz ----
@@ -165,6 +166,22 @@ $("comment").addEventListener("input", (e) => {
   entries[id] = { ...entries[id], comment: e.target.value.trim() ? e.target.value : "" };
   persist(id);
 });
+// „Weiter →“ erscheint, sobald man im Kommentar ist oder etwas geschrieben hat (und bewertet hat)
+function updateCommentNext() {
+  const typing = document.activeElement === $("comment") || !!$("comment").value.trim();
+  $("commentNext").hidden = !(typing && ratingOf(MOTIVES[step].id));
+}
+$("comment").addEventListener("focus", updateCommentNext);
+$("comment").addEventListener("blur", () => setTimeout(updateCommentNext, 0));
+$("comment").addEventListener("input", updateCommentNext);
+// Fokus beim Antippen nicht verlieren, sonst springt das Layout, bevor der Tipp zählt
+$("commentNext").addEventListener("mousedown", (e) => e.preventDefault());
+onTap($("commentNext"), () => {
+  if (!ratingOf(MOTIVES[step].id)) return;
+  $("comment").blur();
+  goNext();
+});
+
 // Enter auf der Tastatur = weiter (sofern bewertet)
 $("comment").addEventListener("keydown", (e) => {
   if (e.key !== "Enter" || e.shiftKey || e.isComposing) return;
