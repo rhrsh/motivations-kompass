@@ -1,6 +1,7 @@
 import { DEFAULT_MOTIVES, SCALE, ADVANCE_MS } from "./config.js";
 import * as store from "./storage.js";
 import { face } from "./faces.js";
+import { icon } from "./icons.js";
 
 // Datenbank vorbereiten: einmalig alte Daten übernehmen, ggf. Einrichtungslink anwenden
 let dbError = null;
@@ -117,9 +118,11 @@ function renderStep(dir = 0) {
   [...$("progress").children].forEach((el, i) => {
     el.className = i === step ? "now" : ratingOf(MOTIVES[i].id) ? "done" : "";
   });
-  const box = $("qBox");
+  // Ganzer Block gleitet herein, damit der Wechsel sichtbar ist
+  const box = $("stage");
   box.classList.remove("fade", "in-next", "in-prev"); void box.offsetWidth;
   box.classList.add(dir > 0 ? "in-next" : dir < 0 ? "in-prev" : "fade");
+  $("qIcon").innerHTML = icon(m.icon);
   $("qName").textContent = m.name;
   $("qText").textContent = m.q;
   for (const b of $("scale").children) {
@@ -260,7 +263,8 @@ function renderSummary() {
     const mini = document.createElement("span");
     if (r) { mini.className = "mini"; mini.innerHTML = face(r, SCALE[r - 1].say); } else mini.className = "mini empty";
     const st = document.createElement("strong"); st.textContent = m.name;
-    it.append(mini, st);
+    const ic = document.createElement("span"); ic.className = "ic"; ic.innerHTML = icon(m.icon);
+    it.append(mini, ic, st);
     onTap(it, () => { fromSummary = true; step = i; renderStep(); show("step"); });
     main.append(it);
     const c = commentOf(m.id).trim();

@@ -3,13 +3,13 @@
 // Neutrale Standardwerte. Die persönlichen Motivatoren stehen NICHT im Code,
 // sondern werden einmalig per Einrichtungslink auf das Handy geladen (siehe README).
 export const DEFAULT_MOTIVES = [
-  { id: "verantwortung", name: "Verantwortung", q: "Wie viel Verantwortung und Entscheidungsspielraum habe ich?" },
-  { id: "gestaltung",    name: "Gestaltung",    q: "Kann ich Dinge gestalten und aufbauen?" },
-  { id: "sinn",          name: "Sinn",          q: "Identifiziere ich mich mit dem, was ich tue?" },
-  { id: "anerkennung",   name: "Anerkennung",   q: "Wird meine Arbeit gesehen und wertgeschätzt?" },
-  { id: "wirkung",       name: "Wirkung",       q: "Bewirke ich etwas Relevantes?" },
-  { id: "freiheit",      name: "Freiheit",      q: "Kann ich meine Arbeit frei gestalten?" },
-  { id: "entwicklung",   name: "Entwicklung",   q: "Lerne und wachse ich?" },
+  { id: "verantwortung", name: "Verantwortung", q: "Wie viel Verantwortung und Entscheidungsspielraum habe ich?", icon: "key" },
+  { id: "gestaltung",    name: "Gestaltung",    q: "Kann ich Dinge gestalten und aufbauen?", icon: "blocks" },
+  { id: "sinn",          name: "Sinn",          q: "Identifiziere ich mich mit dem, was ich tue?", icon: "heart" },
+  { id: "anerkennung",   name: "Anerkennung",   q: "Wird meine Arbeit gesehen und wertgeschätzt?", icon: "star" },
+  { id: "wirkung",       name: "Wirkung",       q: "Bewirke ich etwas Relevantes?", icon: "target" },
+  { id: "freiheit",      name: "Freiheit",      q: "Kann ich meine Arbeit frei gestalten?", icon: "bird" },
+  { id: "entwicklung",   name: "Entwicklung",   q: "Lerne und wachse ich?", icon: "sprout" },
 ];
 
 export const SCALE = [

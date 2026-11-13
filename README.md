@@ -12,6 +12,7 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 | `js/config.js` | **Inhalte:** neutrale Standard-Motivatoren, Skala |
 | `js/storage.js` | **Datenhaltung:** IndexedDB, Umzug alter Daten, Export |
 | `js/faces.js` | Die fünf Gesichter der Skala (SVG) |
+| `js/icons.js` | Neutraler Symbolkasten für die Motivatoren (Zuordnung im Einrichtungslink) |
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |

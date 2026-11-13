@@ -86,6 +86,13 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
 .progress button::before { content: ""; display: block; height: 5px; border-radius: 3px; background: var(--line); transition: background .25s; }
 .progress button.done::before { background: var(--accent); }
 .progress button.now::before { background: var(--ink); }
+/* Symbol des Motivators */
+.icon { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.qicon { width: 64px; height: 64px; padding: 14px; margin-bottom: 18px; border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface)); color: var(--accent); }
+.qicon:empty { display: none; }
+.item .ic { width: 18px; height: 18px; flex: none; color: var(--muted); }
+
 /* Frage, Gesichter und Kommentar als eine Gruppe, mittig im freien Raum */
 .stage { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px; padding-bottom: 6vh; }
 .q h2 { font-size: 38px; line-height: 1.08; }
@@ -112,10 +119,10 @@ textarea {
   width: 100%; min-height: 64px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
   color: var(--ink); padding: 12px 14px; font: inherit; font-size: 16px; resize: none;
 }
-.in-next { animation: in-next .24s ease both; }
-.in-prev { animation: in-prev .24s ease both; }
-@keyframes in-next { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
-@keyframes in-prev { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+.in-next { animation: in-next .3s cubic-bezier(.2,.8,.2,1) both; }
+.in-prev { animation: in-prev .3s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes in-next { from { opacity: 0; transform: translateX(70px); } to { opacity: 1; transform: none; } }
+@keyframes in-prev { from { opacity: 0; transform: translateX(-70px); } to { opacity: 1; transform: none; } }
 
 /* Auswertung: kompakt, damit sie ohne Scrollen passt */
 .overall { display: flex; align-items: center; gap: 14px; }
