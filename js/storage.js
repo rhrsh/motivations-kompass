@@ -11,7 +11,7 @@
 //   settings  Einstellungen als Schlüssel/Wert
 //             { key: "motives", value: [ { id, name, q }, … ] }   persönliche Motivatoren
 //
-// Jede Eingabe schreibt sofort genau einen Datensatz. Es gibt keinen Entwurf und keinen Speichermoment.
+// Jede Eingabe schreibt sofort einen einzigen Datensatz. Es gibt keinen Entwurf und keinen Speichermoment.
 
 const DB_NAME = "kompass";
 const DB_VERSION = 1;

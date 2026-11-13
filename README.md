@@ -42,7 +42,7 @@ IndexedDB-Datenbank `kompass` (nur auf dem Gerät) mit zwei Tabellen (Object Sto
 { "week": "2026-W46", "motive": "verantwortung", "rating": 4, "comment": "…", "updatedAt": "2026-11-13T09:59:54.160Z" }
 ```
 
-`rating`: 1 = gar nicht … 5 = voll erfüllt, `null` = noch nicht eingeordnet. Jede Eingabe schreibt sofort genau
+`rating`: 1 = gar nicht … 5 = voll erfüllt, `null` = noch nicht eingeordnet. Jede Eingabe schreibt sofort nur
 diesen einen Datensatz; es gibt keinen Entwurf und keinen Speichermoment. Der Schnitt wird nicht gespeichert,
 sondern beim Anzeigen berechnet. Alte Daten aus dem localStorage (bis Version v6) übernimmt die App beim ersten
 Start automatisch.
