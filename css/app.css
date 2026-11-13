@@ -93,7 +93,16 @@ textarea {
 .item p { margin: 0; font-size: 14px; background: var(--bg); border-radius: 10px; padding: 8px 10px; overflow-wrap: anywhere; }
 .note { font-size: 13px; color: var(--muted); text-align: center; margin: 0; }
 
+.swipe-hint { margin: -12px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
+.q { touch-action: pan-y; transition: transform .2s ease, opacity .2s ease; }
+.screen#step { touch-action: pan-y; }
+.in-next { animation: in-next .24s ease both; }
+.in-prev { animation: in-prev .24s ease both; }
+@keyframes in-next { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes in-prev { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+.shake { animation: shake .35s ease; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 .fade { animation: fade .28s ease both; }
 @keyframes fade { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .fade { animation: none; } .opt, .btn { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .fade, .in-next, .in-prev, .shake { animation: none; } .opt, .btn, .q { transition: none; } }
 @media (max-width: 360px) { .opt small { font-size: 10px; } .q h2 { font-size: 28px; } }

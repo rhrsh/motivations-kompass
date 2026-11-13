@@ -48,7 +48,7 @@ SCALE.forEach((s) => {
   $("scale").append(b);
 });
 
-function renderStep() {
+function renderStep(dir = 0) {
   const m = MOTIVES[step];
   const r = check.ratings[m.id] || 0;
   $("backBtn").style.visibility = step === 0 ? "hidden" : "visible";
@@ -56,7 +56,9 @@ function renderStep() {
   [...$("progress").children].forEach((el, i) => {
     el.className = i === step ? "now" : check.ratings[MOTIVES[i].id] ? "done" : "";
   });
-  const box = $("qBox"); box.classList.remove("fade"); void box.offsetWidth; box.classList.add("fade");
+  const box = $("qBox"); box.style.transform = ""; box.style.opacity = "";
+  box.classList.remove("fade", "in-next", "in-prev"); void box.offsetWidth;
+  box.classList.add(dir > 0 ? "in-next" : dir < 0 ? "in-prev" : "fade");
   $("qName").textContent = m.name;
   $("qText").textContent = m.q;
   [...$("scale").children].forEach((b) => {
@@ -64,6 +66,7 @@ function renderStep() {
     b.classList.toggle("sel", on); b.setAttribute("aria-checked", String(on));
   });
   $("verdict").textContent = r ? SCALE[r - 1].say : "Tippe eine Zahl an";
+  $("swipeHint").hidden = !r;
   const c = check.comments[m.id] || "";
   $("comment").value = c;
   $("comment").hidden = !c;
@@ -92,13 +95,66 @@ $("commentToggle").addEventListener("click", () => {
 let lockedUntil = 0;
 const lock = () => { lockedUntil = Date.now() + 300; };
 
-$("nextBtn").addEventListener("click", () => {
-  if (Date.now() < lockedUntil || !check.ratings[MOTIVES[step].id]) return;
+function goNext() {
+  if (Date.now() < lockedUntil) return;
+  if (!check.ratings[MOTIVES[step].id]) { nudge(); return; }
   lock();
-  if (step < MOTIVES.length - 1) { step += 1; renderStep(); window.scrollTo(0, 0); return; }
+  if (step < MOTIVES.length - 1) { step += 1; renderStep(1); window.scrollTo(0, 0); return; }
   finish();
+}
+function goBack() {
+  if (Date.now() < lockedUntil || step === 0) return;
+  lock(); step -= 1; renderStep(-1);
+}
+// Noch keine Zahl gewählt: Skala kurz wackeln lassen statt weiterzugehen
+function nudge() {
+  const sc = $("scale"); sc.classList.remove("shake"); void sc.offsetWidth; sc.classList.add("shake");
+  $("verdict").textContent = "Erst eine Zahl antippen";
+  navigator.vibrate?.([10, 40, 10]);
+}
+
+$("nextBtn").addEventListener("click", goNext);
+$("backBtn").addEventListener("click", goBack);
+
+// ---- Wischen: nach links = weiter, nach rechts = zurück ----
+// Nur waagerechte Bewegungen zählen, damit Scrollen und Tippen normal funktionieren.
+let sx = 0, sy = 0, swiping = false, horizontal = null;
+const stepEl = $("step");
+stepEl.addEventListener("touchstart", (e) => {
+  if (e.touches.length !== 1 || e.target.closest("textarea")) { swiping = false; return; }
+  sx = e.touches[0].clientX; sy = e.touches[0].clientY; swiping = true; horizontal = null;
+}, { passive: true });
+stepEl.addEventListener("touchmove", (e) => {
+  if (!swiping) return;
+  const dx = e.touches[0].clientX - sx, dy = e.touches[0].clientY - sy;
+  if (horizontal === null && Math.hypot(dx, dy) > 10) horizontal = Math.abs(dx) > Math.abs(dy) * 1.2;
+  if (!horizontal) return;
+  // Karte folgt dem Finger ein Stück, damit man sieht, dass etwas passiert
+  const box = $("qBox");
+  box.classList.remove("fade", "in-next", "in-prev");
+  box.style.transition = "none";
+  box.style.transform = `translateX(${dx * 0.5}px)`;
+  box.style.opacity = String(1 - Math.min(Math.abs(dx) / 400, 0.5));
+}, { passive: true });
+const endSwipe = (e) => {
+  if (!swiping) return;
+  swiping = false;
+  const t = e.changedTouches[0];
+  const dx = t ? t.clientX - sx : 0;
+  const box = $("qBox"); box.style.transition = ""; box.style.transform = ""; box.style.opacity = "";
+  if (!horizontal || Math.abs(dx) < 60) return;
+  if (dx < 0) goNext(); else goBack();
+};
+stepEl.addEventListener("touchend", endSwipe);
+stepEl.addEventListener("touchcancel", endSwipe);
+
+// Tastatur am Rechner: Pfeiltasten und 1–5
+document.addEventListener("keydown", (e) => {
+  if ($("step").hidden || e.target.closest?.("textarea")) return;
+  if (e.key === "ArrowRight") goNext();
+  else if (e.key === "ArrowLeft") goBack();
+  else if (/^[1-5]$/.test(e.key)) choose(Number(e.key));
 });
-$("backBtn").addEventListener("click", () => { if (step > 0) { lock(); step -= 1; renderStep(); } });
 
 function finish() {
   const done = { ...check, average: average(check), updatedAt: new Date().toISOString() };
