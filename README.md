@@ -37,6 +37,8 @@ Installierbare Web-App (PWA), läuft auf dem Handy, Daten bleiben auf dem Gerät
 - Gesichter (`js/faces.js`): eigene SVG-Zeichnung mit leichtem Glanz und Schatten. Die Mimik trägt die Bedeutung,
   die Farbe unterstützt sie.
 - Ring (`.gauge`): füllt sich mit dem Durchschnitt von Rot nach Grün (`--p` in Prozent).
+- App-Icon (`icons/icon.svg`): Gesicht im Farbring wie auf dem Startbildschirm, heller Hintergrund. Die PNG-Dateien
+  daneben sind daraus erzeugt; das Ringbild liegt innerhalb der sicheren Zone für runde Android-Icons.
 - Symbole (`js/icons.js`): einfache Strichzeichnungen, verfügbar: key, blocks, heart, star, target, bird, sprout.
 
 ## Persönliche Motivatoren
