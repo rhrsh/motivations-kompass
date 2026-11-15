@@ -1,11 +1,11 @@
 // Bewerten (Bestand, noch ohne eigene Spec) und Umgebungen (specs/001-umgebungen.md)
 const { test, expect } = require("@playwright/test");
-const { failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek } = require("./helpers");
+const { PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek } = require("./helpers");
 
 failOnConsoleErrors();
 
 test("Bewerten: Auswertung passt ohne Scrollen und bleibt nach Neuladen erhalten", async ({ page }) => {
-  await page.goto("./");
+  await page.goto(PROD);
   await expect(page.locator("#homeBtn")).toHaveText("Woche bewerten");
   await rateWholeWeek(page);
   expect(await fitsScreen(page), "Auswertung muss ohne Scrollen passen").toBe(true);
@@ -15,29 +15,29 @@ test("Bewerten: Auswertung passt ohne Scrollen und bleibt nach Neuladen erhalten
 });
 
 test("[001 AK-8] Production zeigt keine Beta-Kennzeichnung und keine Beta-Werkzeuge", async ({ page }) => {
-  await page.goto("./");
+  await page.goto(PROD);
   await expect(page.locator("#betaTools")).toBeHidden();
   await expect(page.locator(".beta-badge")).toBeHidden();
 });
 
 test("[001 AK-2, AK-4] Beta hat eigene Daten und ist gekennzeichnet", async ({ page }) => {
-  await page.goto("./");
+  await page.goto(PROD);
   await page.locator("#homeBtn").tap();
   await page.locator('#scale .opt[data-v="4"]').tap();
   await expect(page.locator("#saveState")).toHaveText("✓ Gespeichert");
 
-  await page.goto("./beta/");
+  await page.goto(BETA);
   await expect(page.locator(".beta-badge")).toBeVisible();
   await expect(page.locator("#betaTools")).toBeVisible();
   await expect.poll(() => weeksIn(page, "kompass-beta")).toBeGreaterThanOrEqual(10);
 
-  await page.goto("./");
+  await page.goto(PROD);
   await expect(page.locator("#homeText")).toContainText("1 von");
   expect(await weeksIn(page, "kompass"), "Production darf keine Beispieldaten enthalten").toBe(1);
 });
 
 test("[001 AK-5, AK-6, AK-7] Beta startet mit Beispieldaten, Zurücksetzen leert sie dauerhaft", async ({ page }) => {
-  await page.goto("./beta/");
+  await page.goto(BETA);
   await expect(page.locator("#homeText")).toContainText("Beispieldaten");
   // laufende Woche bleibt frei
   await page.reload();
@@ -60,9 +60,9 @@ test("[001 AK-3] Offline-Speicher von Production und Beta bleiben getrennt erhal
   const cacheNames = () => page.evaluate(async () => {
     await navigator.serviceWorker.ready; return (await caches.keys()).sort();
   }).catch(() => []);
-  await page.goto("./");
+  await page.goto(PROD);
   await expect.poll(cacheNames).toContainEqual(expect.stringMatching(/^kompass-v\d+$/));
-  await page.goto("./beta/");
+  await page.goto(BETA);
   await expect.poll(cacheNames).toContainEqual(expect.stringMatching(/^kompass-beta-v\d+$/));
   await expect.poll(cacheNames, { message: "Production-Cache darf nicht gelöscht werden" })
     .toContainEqual(expect.stringMatching(/^kompass-v\d+$/));

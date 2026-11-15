@@ -1,6 +1,6 @@
 # Regeln für Claude in diesem Repository
 
-Motivation Tracker (Repository: motivations-kompass): installierbare Web-App (PWA) ohne Build-Schritt, gehostet über GitHub Pages aus `main` (Root).
+Motivation Tracker (Repository: motivations-kompass): installierbare Web-App (PWA) ohne Build-Schritt, gehostet über GitHub Pages (Production aus `main` unter `/app/`, Beta aus `staging` unter `/beta/`).
 Aufbau und Datenmodell: siehe README.md.
 
 ## Arbeitsweise (Entwicklungsprozess)
@@ -10,7 +10,7 @@ CI, Staging, Beta, Spec, Akzeptanzkriterium, Abnahme, Merge, Release, Tag, Hotfi
 
 Ablauf (Staging + Spec-driven Development, siehe `specs/README.md`):
 **Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach `staging` → CI grün → Abnahme in der Beta → Release-PR nach `main` → Tag**
-- Branches: `main` = Production (`/`), `staging` = Beta (`/beta/`), Arbeit auf `feature/…` bzw. `fix/…` (von `staging` abzweigen).
+- Branches: `main` = Production (`/app/`), `staging` = Beta (`/beta/`), Arbeit auf `feature/…` bzw. `fix/…` (von `staging` abzweigen).
 - Neue Funktion: zuerst Spec in `specs/` (nach `000-vorlage.md`) als eigener PR nach `staging`. Der Merge ist die Freigabe zum Bauen.
   Kleine Korrekturen brauchen keine eigene Spec, ändern aber eine bestehende, wenn sich Verhalten ändert.
 - Umsetzung als PR nach `staging`, mit `Closes #…` und Verweis auf die Spec. Beschreiben: was, warum, wie getestet,
@@ -21,7 +21,8 @@ Ablauf (Staging + Spec-driven Development, siehe `specs/README.md`):
 - Hotfix (dringender Fehler in Production): Branch `fix/…` von `main`, PR nach `main`, danach PR `main` → `staging` (Backmerge).
 - Nie direkt auf `main` oder `staging` pushen. Nur der Nutzer merged. Claude merged nie selbst.
 - Ausgeliefert wird nur nach grünen Tests (`.github/workflows/deploy.yml` startet nach „Tests“).
-- Production und Beta sind über `js/env.js` getrennt (eigene Datenbank, eigener Offline-Speicher). Diese Trennung nie aufweichen.
+- Production und Beta sind über `js/env.js` getrennt (eigene Datenbank, eigener Offline-Speicher) und liegen nebeneinander,
+  nie ineinander, damit beide installierbar bleiben (Spec 001, AK-10). Diese Trennung nie aufweichen.
 - `VERSION` in `sw.js`: jeder Feature-PR erhöht sie um eins. Bei Konflikten `staging` in den Branch mergen und die nächste freie Nummer nehmen.
 - Rollback: Merge-Commit per `git revert` auf einem Branch rückgängig machen und als PR einreichen.
 
@@ -50,7 +51,7 @@ Kommunikation:
 
 ## Einrichtungslink
 - Ändert der Nutzer Motivatoren, Leitfragen oder Symbole, einen neuen Einrichtungslink erzeugen (Format siehe README) und **nur im Chat** ausgeben, nie in Dateien, Commits oder Kommentare schreiben.
-- Basis-URL: `https://rhrsh.github.io/motivations-kompass/#setup=…`. Bestehende `id`s beibehalten.
+- Basis-URL: `https://rhrsh.github.io/motivations-kompass/app/#setup=…` (die frühere Adresse ohne `app/` leitet weiter). Bestehende `id`s beibehalten.
 
 ## Datenschutz (wichtig, das Repository ist öffentlich)
 - Keine persönlichen Daten ins Repository, auch nicht in Specs, Issues oder PRs: keine Namen, E-Mail-Adressen, Arbeitgeber, Firmen, Kollegen, Orte.

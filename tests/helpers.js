@@ -1,4 +1,9 @@
 // Gemeinsame Hilfen für die Tests
+
+// Adressen wie bei der echten Auslieferung (siehe tests/serve.js)
+const ROOT = "/motivations-kompass/";
+const PROD = "/motivations-kompass/app/";
+const BETA = "/motivations-kompass/beta/";
 const { test, expect } = require("@playwright/test");
 
 // Konsolenfehler sammeln: Ein Test schlägt fehl, sobald die App einen Fehler meldet.
@@ -33,4 +38,4 @@ async function rateWholeWeek(page, value) {
   await expect(page.locator("#summary")).toBeVisible();
 }
 
-module.exports = { failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek };
+module.exports = { ROOT, PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek };

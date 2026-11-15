@@ -25,6 +25,7 @@ Sicherungen weiter funktionieren.
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |
 | `specs/` | **Spezifikationen:** was die App tun soll, mit Akzeptanzkriterien |
+| `root/` | Weiterleitung von der früheren Adresse auf `app/` |
 | `tests/`, `playwright.config.js`, `package.json` | Automatische Tests (nur Entwicklung, nicht Teil der App) |
 | `.github/workflows/` | CI (Tests) und Auslieferung (Production und Beta) |
 
@@ -61,7 +62,7 @@ Sicherungen weiter funktionieren.
 ## Persönliche Motivatoren
 
 Die eigenen Motivatoren stehen bewusst nicht im öffentlichen Code. Sie werden einmalig über einen
-Einrichtungslink aufs Handy geladen: `…/motivations-kompass/#setup=<base64url-JSON>`.
+Einrichtungslink aufs Handy geladen: `…/motivations-kompass/app/#setup=<base64url-JSON>`.
 Der Teil nach `#` wird vom Browser nie an den Server geschickt. Die App speichert die Liste
 in der IndexedDB (`settings` → `motives`) und entfernt den Teil aus der Adresse.
 
@@ -95,10 +96,12 @@ Start automatisch.
 
 | Umgebung | Adresse | Branch | Daten |
 |---|---|---|---|
-| **Production** | `…/motivations-kompass/` | `main` | echte Daten (Datenbank `kompass`) |
+| **Production** | `…/motivations-kompass/app/` | `main` | echte Daten (Datenbank `kompass`) |
 | **Beta** | `…/motivations-kompass/beta/` | `staging` | Testdaten (Datenbank `kompass-beta`) |
 
-Beide liegen unter derselben Adresse und teilen sich den Speicher des Browsers. `js/env.js` erkennt die Umgebung
+Die frühere Adresse `…/motivations-kompass/` leitet auf Production weiter (Dateien in `root/`).
+Production und Beta liegen nebeneinander statt ineinander, damit sich beide als eigene Apps installieren lassen.
+Beide gehören zur selben Website und teilen sich den Speicher des Browsers. `js/env.js` erkennt die Umgebung
 am Pfad und gibt Datenbank und Offline-Speicher eigene Namen, damit die Beta echte Daten nie berührt.
 Die Beta ist mit „Beta“ gekennzeichnet (in der App und mit eigenem Icon aus `icons/beta/`, das die Auslieferung nur
 dort einsetzt). Beim ersten Öffnen lädt sie Beispieldaten; unten gibt es „Beispieldaten laden“ und „Daten zurücksetzen“.

@@ -1,11 +1,11 @@
 // Verlauf über mehrere Wochen (specs/002-verlauf.md). Geprüft in der Beta mit Beispieldaten.
 const { test, expect } = require("@playwright/test");
-const { failOnConsoleErrors, fitsScreen, rateWholeWeek } = require("./helpers");
+const { PROD, BETA, failOnConsoleErrors, fitsScreen, rateWholeWeek } = require("./helpers");
 
 failOnConsoleErrors();
 
 async function openHistoryWithSampleData(page) {
-  await page.goto("./beta/");
+  await page.goto(BETA);
   await expect(page.locator("#homeText")).toContainText("Beispieldaten"); // automatisch geladen (001 AK-5)
   await page.locator("#historyBtn").tap();
   await expect(page.locator("#history")).toBeVisible();
@@ -31,7 +31,7 @@ test("[002 AK-5] Richtung und Höhe unter dem Namen", async ({ page }) => {
 });
 
 test("[002 AK-6, AK-7] Regeln für die Richtung", async ({ page }) => {
-  await page.goto("./");
+  await page.goto(PROD);
   const t = (values) => page.evaluate(async (v) => (await import("./js/history.js")).trend(v).text, values);
   expect(await t([])).toBe("noch keine Bewertung");
   expect(await t([3, 3, 3, 3, 3])).toBe("teils · Richtung ab 1 weiteren Woche");
@@ -59,7 +59,7 @@ test("[002 AK-8] Ältere Wochen per Pfeil und per Wischen", async ({ page }) => 
 });
 
 test("[002 AK-10] Ohne Daten: „noch keine Bewertung“", async ({ page }) => {
-  await page.goto("./");
+  await page.goto(PROD);
   await page.locator("#historyBtn").tap();
   await expect(page.locator("#history .h-row").first().locator("small")).toHaveText("noch keine Bewertung");
 });
@@ -82,7 +82,7 @@ test("[002 AK-11, AK-12, AK-13, AK-15] Detail: Linie, Vergleich, Kommentare neue
 });
 
 test("[002 AK-14, AK-15] Einstieg aus der Auswertung, die weiter ohne Scrollen passt", async ({ page }) => {
-  await page.goto("./");
+  await page.goto(PROD);
   await rateWholeWeek(page, 3);
   expect(await fitsScreen(page), "Auswertung muss ohne Scrollen passen").toBe(true);
   await page.locator("#sumHistoryBtn").tap();

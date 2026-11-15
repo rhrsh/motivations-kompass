@@ -1,7 +1,11 @@
 # CD (Continuous Deployment): liefert die App auf GitHub Pages aus.
 #
-#   Production  /motivations-kompass/        Branch main     (echte Daten)
+#   Production  /motivations-kompass/app/    Branch main     (echte Daten)
 #   Beta        /motivations-kompass/beta/   Branch staging  (integrierter Stand aller fertigen Tickets, Testdaten)
+#   Weiterleitung /motivations-kompass/      aus root/ von main (frühere Adresse → app/)
+#
+# Production und Beta liegen nebeneinander, nicht ineinander, damit sich beide als eigene Apps
+# installieren lassen (specs/001-umgebungen.md, AK-10).
 #
 # Ausgeliefert wird erst, wenn die Tests ("Tests", ci.yml) auf main oder staging grün durchgelaufen sind.
 # GitHub Pages kennt nur eine Website pro Repository, daher werden beide Umgebungen bei jedem Lauf
@@ -61,8 +65,9 @@ jobs:
         run: |
           # Nur die Dateien der App, keine Tests, Specs oder Werkzeuge
           APP="index.html manifest.webmanifest sw.js css js icons"
-          mkdir site
-          (cd prod && cp -r $APP ../site/)
+          mkdir -p site/app
+          cp prod/root/index.html prod/root/sw.js site/
+          (cd prod && cp -r $APP ../site/app/)
           version() { grep -o 'VERSION = "v[0-9]*"' "$1/sw.js" | grep -o 'v[0-9]*'; }
           echo "Production: $(version prod) ($(git -C prod rev-parse --short HEAD))" >> "$GITHUB_STEP_SUMMARY"
           if [ -d beta ]; then
