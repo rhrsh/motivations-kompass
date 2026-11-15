@@ -4,6 +4,7 @@ import { face } from "./faces.js";
 import { icon } from "./icons.js";
 import { IS_BETA, CACHE_PATTERN } from "./env.js";
 import { isoWeek } from "./week.js";
+import { renderOverview, renderDetail } from "./history.js";
 
 // Datenbank vorbereiten: einmalig alte Daten übernehmen, ggf. Einrichtungslink anwenden
 let dbError = null;
@@ -47,8 +48,9 @@ const average = () => {
 const firstOpen = () => Math.max(0, MOTIVES.findIndex((m) => !ratingOf(m.id)));
 
 // ---- Navigation ----
+const SCREENS = ["home", "step", "summary", "history", "detail"];
 function show(id) {
-  for (const s of ["home", "step", "summary"]) $(s).hidden = s !== id;
+  for (const s of SCREENS) $(s).hidden = s !== id;
   if (id !== "home") leaveHome();
   window.scrollTo(0, 0);
 }
@@ -197,7 +199,7 @@ let pushed = false, ignorePop = false;
 function leaveHome() { if (!pushed) { history.pushState({ kompass: 1 }, ""); pushed = true; } }
 function goHome() {
   cancelAdvance(); fromSummary = false;
-  renderHome(); $("home").hidden = false; $("step").hidden = true; $("summary").hidden = true;
+  renderHome(); for (const s of SCREENS) $(s).hidden = s !== "home";
   window.scrollTo(0, 0);
   if (pushed) { ignorePop = true; history.back(); }
 }
@@ -208,6 +210,8 @@ window.addEventListener("popstate", () => {
   pushed = false;
   if (!$("step").hidden && step > 0 && !fromSummary) { goTo(step - 1, -1); leaveHome(); }
   else if (!$("step").hidden && fromSummary) { fromSummary = false; renderSummary(); show("summary"); }
+  else if (!$("detail").hidden) { show("history"); leaveHome(); }
+  else if (!$("history").hidden && historyFrom === "summary") { renderSummary(); show("summary"); leaveHome(); }
   else if (!$("home").hidden) { history.back(); } // Start: App normal verlassen
   else { renderHome(); show("home"); }
 });
@@ -347,6 +351,48 @@ $("importFile").addEventListener("change", async (e) => {
   try { sessionStorage.setItem("kompass:notice", msg); } catch {}
   location.reload();
 });
+
+// ---- Verlauf ----
+// Übersicht mit 8 Wochen je Seite (Seite 0 = die neuesten), Detail je Motivator
+let historyRows = [], historyPage = 0, historyPages = 1, historyFrom = "home";
+async function openHistory(from) {
+  historyFrom = from; historyPage = 0;
+  try { historyRows = await store.loadAllEntries(); } catch { historyRows = []; flashSaved(false); }
+  renderHistory(); show("history");
+}
+function renderHistory() {
+  historyPages = renderOverview($("history"), {
+    motives: MOTIVES, rows: historyRows, page: historyPage,
+    onOpen: (m) => { renderDetail($("detail"), { motive: m, rows: historyRows }); show("detail"); },
+  });
+}
+function pageHistory(delta) {
+  const p = Math.min(historyPages - 1, Math.max(0, historyPage + delta));
+  if (p === historyPage) return;
+  historyPage = p; renderHistory();
+  const rows = $("history").querySelector(".h-rows");
+  rows.classList.remove("in-next", "in-prev"); void rows.offsetWidth;
+  rows.classList.add(delta > 0 ? "in-prev" : "in-next");
+}
+function closeHistory() {
+  if (historyFrom === "summary") { renderSummary(); show("summary"); } else goHome();
+}
+onTap($("historyBtn"), () => openHistory("home"));
+onTap($("sumHistoryBtn"), () => openHistory("summary"));
+onTap($("historyBack"), closeHistory);
+onTap($("detailBack"), () => show("history"));
+onTap($("history").querySelector(".h-older"), () => pageHistory(1));
+onTap($("history").querySelector(".h-newer"), () => pageHistory(-1));
+// Wischen: nach rechts = ältere Wochen, nach links = neuere
+{
+  let sx = 0, sy = 0;
+  const card = $("history").querySelector(".h-card");
+  card.addEventListener("touchstart", (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+  card.addEventListener("touchend", (e) => {
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dy) < 40) pageHistory(dx > 0 ? 1 : -1);
+  });
+}
 
 // ---- Preview (beta): Kennzeichnung und Werkzeuge zum Ausprobieren ----
 if (IS_BETA) {

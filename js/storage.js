@@ -50,6 +50,12 @@ export async function loadWeek(week) {
   return Object.fromEntries(rows.map((r) => [r.motive, r]));
 }
 
+// Alle Einträge aller Wochen (für den Verlauf)
+export async function loadAllEntries() {
+  const tx = (await db()).transaction("entries");
+  return done(tx.objectStore("entries").getAll());
+}
+
 // Einen Eintrag schreiben (überschreibt den bisherigen Stand dieses Motivators in dieser Woche)
 export async function saveEntry(week, motive, { rating = null, comment = "" }) {
   const tx = (await db()).transaction("entries", "readwrite");

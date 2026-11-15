@@ -1,6 +1,6 @@
 // Service Worker: speichert die App-Dateien, damit sie offline startet.
 // Bei jeder Änderung an der App VERSION erhöhen, sonst sieht das Handy die alte Version.
-const VERSION = "v17";
+const VERSION = "v18";
 // Umgebung wie in js/env.js: Production unter /, Preview (beta) unter /beta/.
 // Beide teilen sich den Speicher des Browsers, daher eigene Namen und eigenes Aufräumen.
 const IS_BETA = /\/beta\//.test(self.location.pathname);
@@ -9,7 +9,7 @@ const MINE = IS_BETA ? /^kompass-beta-v\d+$/ : /^kompass-v\d+$/;
 const FILES = [
   "./", "./index.html", "./css/app.css",
   "./js/app.js", "./js/config.js", "./js/storage.js", "./js/faces.js", "./js/icons.js",
-  "./js/env.js", "./js/week.js", "./js/sample.js",
+  "./js/env.js", "./js/week.js", "./js/sample.js", "./js/history.js",
   "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png",
   "./icons/icon-maskable-512.png", "./icons/apple-touch-icon.png",
 ];
