@@ -1,0 +1,26 @@
+# CI (Continuous Integration): automatische Tests bei jedem Pull Request und auf main.
+# Rot heißt: nicht mergen. Die Tests stehen in tests/, lokal laufen sie mit `npm test`.
+name: Tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test

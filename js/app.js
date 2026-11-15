@@ -2,6 +2,8 @@ import { DEFAULT_MOTIVES, SCALE, ADVANCE_MS } from "./config.js";
 import * as store from "./storage.js";
 import { face } from "./faces.js";
 import { icon } from "./icons.js";
+import { IS_BETA, CACHE_PATTERN } from "./env.js";
+import { isoWeek } from "./week.js";
 
 // Datenbank vorbereiten: einmalig alte Daten übernehmen, ggf. Einrichtungslink anwenden
 let dbError = null;
@@ -28,14 +30,6 @@ function onTap(el, fn) {
 }
 
 // ---- Kalenderwoche (ISO) ----
-function isoWeek(d) {
-  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const day = t.getUTCDay() || 7;
-  t.setUTCDate(t.getUTCDate() + 4 - day);
-  const y = t.getUTCFullYear();
-  const w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 86400000 + 1) / 7);
-  return { w, key: `${y}-W${String(w).padStart(2, "0")}` };
-}
 const WEEK = isoWeek(new Date());
 
 // ---- Zustand ----
@@ -241,8 +235,8 @@ const sayFor = (avg) => SCALE[Math.min(SCALE.length, Math.max(1, Math.round(avg)
 // Version unten in der Zusammenfassung anzeigen, damit man sieht, was läuft
 function showVersion() {
   window.caches?.keys().then((keys) => {
-    const k = keys.find((x) => x.startsWith("kompass-"));
-    $("version").textContent = k ? `Version ${k.replace("kompass-", "")}` : "";
+    const m = keys.map((x) => x.match(CACHE_PATTERN)).find(Boolean);
+    $("version").textContent = m ? `Version ${m[1]}${IS_BETA ? " · Beta" : ""}` : "";
   }).catch(() => {});
 }
 
@@ -354,6 +348,25 @@ $("importFile").addEventListener("change", async (e) => {
   location.reload();
 });
 
+// ---- Preview (beta): Kennzeichnung und Werkzeuge zum Ausprobieren ----
+if (IS_BETA) {
+  document.documentElement.classList.add("beta");
+  document.title += " Beta";
+  $("betaTools").hidden = false;
+  onTap($("sampleBtn"), async () => {
+    const { sampleEntries } = await import("./sample.js");
+    try { await store.writeEntries(sampleEntries(MOTIVES)); } catch { flashSaved(false); return; }
+    try { sessionStorage.setItem("kompass:notice", "Beispieldaten für die letzten Wochen geladen."); } catch {}
+    location.reload();
+  });
+  onTap($("resetBtn"), async () => {
+    if (!confirm("Alle Daten dieser Beta löschen? Die echte App ist davon nicht betroffen.")) return;
+    try { await store.resetAll(); } catch { flashSaved(false); return; }
+    try { sessionStorage.setItem("kompass:notice", "Beta-Daten gelöscht."); } catch {}
+    location.reload();
+  });
+}
+
 // ---- Beim Öffnen und nach jedem Neuladen: Start ----
 if (dbError) flashSaved(false);
 renderHome();
@@ -370,7 +383,10 @@ store.requestPersistence();
 // Übernimmt eine neue Version, lädt die App sich einmal selbst neu. Jede Eingabe
 // liegt schon in der Datenbank (auch Kommentare, bei jedem Tastendruck), es geht nichts verloren.
 if ("serviceWorker" in navigator) {
-  const hadController = !!navigator.serviceWorker.controller; // beim allerersten Start: kein Update
+  // Nur ein Wechsel des EIGENEN Service Workers ist ein Update. Beim ersten Besuch der Preview ist kurz
+  // noch der von Production zuständig (/beta/ liegt darunter); dessen Ablösung ist kein Grund zum Neuladen.
+  const own = new URL("./sw.js", location.href).href;
+  const hadController = navigator.serviceWorker.controller?.scriptURL === own;
   let reloading = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (!hadController || reloading) return;

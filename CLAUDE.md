@@ -3,15 +3,42 @@
 Motivation Tracker (Repository: motivations-kompass): installierbare Web-App (PWA) ohne Build-Schritt, gehostet über GitHub Pages aus `main` (Root).
 Aufbau und Datenmodell: siehe README.md.
 
-## Arbeitsweise
-- Änderungen direkt auf `main` committen und pushen, außer der Nutzer will ausdrücklich einen Pull Request. GitHub Pages veröffentlicht nur `main`.
-- Bei jeder Änderung an App-Dateien `VERSION` in `sw.js` um eins erhöhen, sonst zeigt das Handy die alte Version.
-- Neue Dateien, die die App lädt, in die `FILES`-Liste in `sw.js` eintragen.
-- Kein Build-Tool, kein Framework, keine externen Skripte oder Schriften. Reines HTML, CSS und JavaScript-Module.
-- Nach einer Änderung kurz erklären, was sich geändert hat und warum, in einfacher Sprache. Der Nutzer lernt damit Produktentwicklung mit KI. Dabei offen sagen, was Claude selbst entschieden hat, ohne zu fragen.
-- Bei größeren oder mehrdeutigen Wünschen erst kurz kritisch prüfen, Optionen mit Empfehlung nennen und nachfragen. Kleine, eindeutige Wünsche direkt umsetzen.
-- Vor dem Push testen: Playwright ist vorinstalliert. Lokal mit `python3 -m http.server` ausliefern, mit Pixel-Größe (412 × 870, isMobile, hasTouch) in hell und dunkel durchklicken, auf Konsolenfehler achten und prüfen, dass die Auswertung ohne Scrollen passt.
-- Die Gestaltung (siehe README, Abschnitt Gestaltung) beibehalten: Farben nur über die Tokens in `css/app.css`, gleiche Gesichter und Symbole auf allen Bildschirmen.
+## Arbeitsweise (Entwicklungsprozess)
+Der Nutzer ist Product Owner und nutzt die App produktiv mit echten Daten. Er will professionelle Entwicklung
+lernen und auf die Arbeit übertragen. Daher die Fachbegriffe verwenden (Issue, Feature-Branch, Pull Request,
+CI, Preview, Abnahme, Merge, Release, Rollback) und kurz erklären, wenn sie neu sind.
+
+Ablauf: **Issue → Feature-Branch → Pull Request → CI grün → Preview → Abnahme → Merge = Release**
+- Jede Änderung beginnt mit einem Issue (User Story mit Akzeptanzkriterien). Kleine Korrekturen dürfen ohne Issue starten.
+- Nie direkt auf `main` pushen. Arbeit auf einem Feature-Branch (`feature/…`, `fix/…`), dann Pull Request nach `main`.
+  Im PR auf das Issue verweisen (`Closes #…`) und beschreiben: was, warum, wie getestet, was der Nutzer in der Preview prüfen soll.
+- Nur der Nutzer merged. Claude merged nie selbst.
+- Production = `main` unter `/`. Preview = neuester offener Pull Request unter `/beta/` (siehe `.github/workflows/deploy.yml`).
+- Preview und Production sind über `js/env.js` getrennt (eigene Datenbank, eigener Offline-Speicher). Diese Trennung nie aufweichen.
+- Rollback: Merge-Commit auf einem Branch per `git revert` rückgängig machen und als PR einreichen.
+
+Definition of Done (vor jedem PR):
+- Automatische Tests grün: `npm test` (Pixel-Größe, hell und dunkel, ohne Konsolenfehler, Auswertung ohne Scrollen).
+  Neue Funktionen bekommen einen Test in `tests/`.
+- Zusätzlich neue Bildschirme mit Playwright ansehen (Screenshots hell und dunkel).
+- `VERSION` in `sw.js` um eins erhöht, neue App-Dateien in `FILES` eingetragen.
+- README aktuell. Datenschutzprüfung (siehe unten) erledigt.
+
+Datensicherheit:
+- Gespeicherte Daten bleiben immer lesbar. Änderungen am Datenmodell nur mit Migration (`DB_VERSION` erhöhen),
+  vorher mit Daten im alten Format testen. Im PR deutlich vermerken, dass der Nutzer vor dem Merge „Daten sichern“ soll.
+
+Technik und Gestaltung:
+- Kein Build-Tool, kein Framework, keine externen Skripte oder Schriften in der App. Reines HTML, CSS und JavaScript-Module.
+  `package.json` dient nur den Tests.
+- Die Gestaltung (siehe README, Abschnitt Gestaltung) beibehalten: Farben nur über die Tokens in `css/app.css`,
+  gleiche Gesichter und Symbole auf allen Bildschirmen.
+
+Kommunikation:
+- Nach einer Änderung kurz erklären, was sich geändert hat und warum, in einfacher Sprache. Dabei offen sagen,
+  was Claude selbst entschieden hat, ohne zu fragen.
+- Bei größeren oder mehrdeutigen Wünschen erst kurz kritisch prüfen, Optionen mit Empfehlung nennen und nachfragen.
+  Kleine, eindeutige Wünsche direkt umsetzen.
 
 ## Einrichtungslink
 - Ändert der Nutzer Motivatoren, Leitfragen oder Symbole, einen neuen Einrichtungslink erzeugen (Format siehe README) und **nur im Chat** ausgeben, nie in Dateien, Commits oder Kommentare schreiben.

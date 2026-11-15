@@ -1,0 +1,12 @@
+{
+  "name": "motivation-tracker",
+  "private": true,
+  "description": "Nur für automatische Tests. Die App selbst braucht keine Pakete und keinen Build-Schritt.",
+  "scripts": {
+    "test": "playwright test",
+    "serve": "node tests/serve.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

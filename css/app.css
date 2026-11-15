@@ -103,6 +103,15 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
 .foot { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 12px; color: var(--muted); }
 .foot-links { display: flex; gap: 18px; }
 
+/* Preview (beta): deutlich gekennzeichnet, damit sie nie mit der echten App verwechselt wird */
+.beta-badge { display: none; }
+.beta .beta-badge {
+  display: block; position: fixed; z-index: 5; left: max(8px, env(safe-area-inset-left, 0px));
+  top: max(2px, env(safe-area-inset-top, 0px)); padding: 1px 8px; border-radius: 999px; line-height: 14px;
+  background: var(--s2); color: var(--s2-ink); font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+}
+.beta-tools { justify-content: center; gap: 18px; padding-top: 6px; border-top: 1px dashed var(--line); }
+
 /* Speicher-Rückmeldung oben */
 .saved { font-size: 12px; font-weight: 600; color: var(--muted); opacity: 0; transition: opacity .3s; }
 .saved.on { opacity: 1; }
