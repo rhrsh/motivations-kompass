@@ -23,6 +23,6 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 
 | Spec | Thema | Status |
 |---|---|---|
-| [001](001-umgebungen.md) | Umgebungen: Production und Beta | Umgesetzt (v19) |
+| [001](001-umgebungen.md) | Umgebungen: Production und Beta | Umgesetzt (v21) |
 | [002](002-verlauf.md) | Verlauf über mehrere Wochen | Umgesetzt (v18) |
 | [003](003-entscheidungsfrage.md) | Eigene Entscheidungsfrage im Verlauf | Verworfen |
