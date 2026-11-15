@@ -35,8 +35,14 @@ ohne dass man sich darum kümmern muss oder Daten verliert.
 
 ## Testabdeckung
 
-| Kriterium | Test |
+Tests nennen das Kriterium im Titel, z. B. `[004 AK-2]`.
+
+| Kriterium | Abgedeckt durch |
 |---|---|
-| AK-2 (Offline-Speicher angelegt) | „[001 AK-3] Offline-Speicher von Production und Beta bleiben getrennt erhalten“ |
-| AK-1, AK-6 | nur von Hand auf dem Gerät prüfbar |
-| AK-3 bis AK-5, AK-7 | noch ohne eigenen Test |
+| AK-1, AK-6 | Manifest in `tests/updates.spec.js`; das Installieren selbst nur von Hand auf dem Gerät |
+| AK-2, AK-5, AK-7 | `tests/updates.spec.js` |
+| AK-3, AK-4 | noch ohne Test (Netz und Versionswechsel im Test aufwendig nachzustellen) |
+
+## Offen
+
+- Beim allerersten Öffnen steht unten noch keine Versionsnummer, erst ab dem zweiten Öffnen (der Offline-Speicher wird erst angelegt). Gefunden beim Schreiben der Tests.

@@ -46,9 +46,10 @@ braucht es einen kompakten Überblick über die Woche, ohne Scrollen und ohne Ur
 
 ## Testabdeckung
 
-| Kriterium | Test |
-|---|---|
-| AK-3 (Zustand „erledigt“), AK-11 | „Bewerten: Auswertung passt ohne Scrollen und bleibt nach Neuladen erhalten“ |
-| AK-10 (Link zum Verlauf), AK-11 | „[002 AK-14, AK-15] Einstieg aus der Auswertung …“ |
-| AK-1, AK-2, AK-4 bis AK-9, AK-12 | noch ohne eigenen Test |
+Tests nennen das Kriterium im Titel, z. B. `[004 AK-2]`.
 
+| Kriterium | Abgedeckt durch |
+|---|---|
+| AK-1 bis AK-4, AK-6 bis AK-10, AK-12 | `tests/auswertung.spec.js` |
+| AK-3, AK-11 | `tests/app.spec.js` (ganze Woche), AK-10 und AK-11 auch `[002 AK-14, AK-15]` |
+| AK-5 | noch ohne Test (Speicherfehler lässt sich im Test schwer erzeugen) |

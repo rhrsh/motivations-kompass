@@ -36,10 +36,12 @@ einmalig aufs Handy kommen.
 
 ## Testabdeckung
 
-| Kriterium | Test |
+Tests nennen das Kriterium im Titel, z. B. `[004 AK-2]`.
+
+| Kriterium | Abgedeckt durch |
 |---|---|
-| AK-1, AK-2, AK-7 | „[001 AK-11] Frühere Adresse leitet weiter, Daten und Einrichtungslink bleiben“ |
-| AK-3 bis AK-6, AK-8 | noch ohne eigenen Test |
+| AK-1 bis AK-6, AK-8 | `tests/einrichtung.spec.js` |
+| AK-7 | `[001 AK-11]` in `tests/umgebungen.spec.js` |
 
 ## Offen (vorgemerkt in #19, Lösung folgt)
 
