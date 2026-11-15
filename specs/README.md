@@ -11,6 +11,12 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 5. **Release:** mit dem nächsten Release-PR nach `main` (Status „Umgesetzt (vNN)“).
 6. **Änderungen am Verhalten** beginnen mit einer Änderung der Spec. Die Spec bleibt die aktuelle Beschreibung.
 
+## Nachgezogene Specs
+
+Die Specs 004 bis 008 beschreiben Funktionen, die vor der Einführung von Specs gebaut wurden. Sie halten das heutige
+Verhalten fest. Fragwürdiges steht unter „Offen“ und wird nur nach Entscheidung des Product Owners geändert.
+Jede Spec zeigt unter „Testabdeckung“, welche Kriterien schon automatisch geprüft werden.
+
 ## Regeln
 
 - Akzeptanzkriterien sind nummeriert (**AK-1**, **AK-2**, …), prüfbar und beschreiben Verhalten, nicht Technik.
@@ -26,3 +32,8 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 | [001](001-umgebungen.md) | Umgebungen: Production und Beta | Umgesetzt (v21) |
 | [002](002-verlauf.md) | Verlauf über mehrere Wochen | Umgesetzt (v18) |
 | [003](003-entscheidungsfrage.md) | Eigene Entscheidungsfrage im Verlauf | Verworfen |
+| [004](004-wochencheck-bewerten.md) | Wochencheck: Motivatoren bewerten | Umgesetzt (v21) |
+| [005](005-start-und-auswertung.md) | Start und Auswertung der Woche | Umgesetzt (v21) |
+| [006](006-daten-sichern-und-laden.md) | Daten sichern und laden | Umgesetzt (v21) |
+| [007](007-einrichtung-der-motivatoren.md) | Einrichtung der Motivatoren | Umgesetzt (v21) |
+| [008](008-installation-offline-updates.md) | Installation, Offline-Betrieb und Updates | Umgesetzt (v21) |
