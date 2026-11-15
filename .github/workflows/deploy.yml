@@ -74,7 +74,7 @@ jobs:
             mkdir site/beta
             (cd beta && cp -r $APP ../site/beta/)
             # Installiert soll die Beta anders heißen und aussehen als die echte App
-            sed -i 's/"name": "[^"]*"/"name": "Motivation Tracker Beta"/; s/"short_name": "[^"]*"/"short_name": "Beta"/' site/beta/manifest.webmanifest
+            sed -i 's/"name": "[^"]*"/"name": "Motivation Tracker Beta"/; s/"short_name": "[^"]*"/"short_name": "Motivation Beta"/' site/beta/manifest.webmanifest
             if [ -d site/beta/icons/beta ]; then cp site/beta/icons/beta/*.png site/beta/icons/; fi
             echo "Beta: $(version beta) ($(git -C beta rev-parse --short HEAD))" >> "$GITHUB_STEP_SUMMARY"
           else
