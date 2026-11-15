@@ -1,10 +1,10 @@
 // Umgebung (Environment): In welcher Kopie der App laufen wir?
 //
 //   production  …/motivations-kompass/        die echte App mit echten Daten
-//   beta        …/motivations-kompass/beta/   Preview eines Pull Requests zum Ausprobieren
+//   beta        …/motivations-kompass/beta/   Beta: Stand von staging zum Ausprobieren, mit Testdaten
 //
 // Beide liegen unter derselben Adresse (Origin) und teilen sich deshalb den Speicher des Browsers.
-// Damit die Preview nie echte Daten berührt, bekommt jede Umgebung eigene Namen für
+// Damit die Beta nie echte Daten berührt, bekommt jede Umgebung eigene Namen für
 // Datenbank und Offline-Speicher. sw.js wiederholt diese Regel, weil er dieses Modul nicht laden kann.
 
 export const ENV = /\/beta\//.test(location.pathname) ? "beta" : "production";

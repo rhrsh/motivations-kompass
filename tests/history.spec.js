@@ -1,49 +1,56 @@
-// Verlauf über mehrere Wochen (Issue #1). Geprüft in der Preview mit Beispieldaten.
+// Verlauf über mehrere Wochen (specs/002-verlauf.md). Geprüft in der Beta mit Beispieldaten.
 const { test, expect } = require("@playwright/test");
+const { failOnConsoleErrors, fitsScreen, rateWholeWeek } = require("./helpers");
 
-let consoleErrors = [];
-test.beforeEach(async ({ page }) => {
-  consoleErrors = [];
-  page.on("pageerror", (e) => consoleErrors.push(String(e)));
-  page.on("console", (m) => { if (m.type() === "error") consoleErrors.push(m.text()); });
-});
-test.afterEach(async () => { expect(consoleErrors, "Konsolenfehler").toEqual([]); });
+failOnConsoleErrors();
 
-const fits = (page) => page.evaluate(() => document.documentElement.scrollHeight <= innerHeight);
-
-async function withSampleData(page) {
+async function openHistoryWithSampleData(page) {
   await page.goto("./beta/");
-  await page.locator("#sampleBtn").tap();
-  await expect(page.locator("#homeText")).toContainText("Beispieldaten");
+  await expect(page.locator("#homeText")).toContainText("Beispieldaten"); // automatisch geladen (001 AK-5)
+  await page.locator("#historyBtn").tap();
+  await expect(page.locator("#history")).toBeVisible();
 }
 
-test("Übersicht: eine Zeile je Motivator, 8 Wochen, Richtung, ohne Scrollen", async ({ page }) => {
-  await withSampleData(page);
-  await page.locator("#historyBtn").tap();
+test("[002 AK-1, AK-2, AK-3, AK-4, AK-9] Übersicht: Zeile je Motivator, 8 Wochenbalken, Lücken, ohne Scrollen", async ({ page }) => {
+  await openHistoryWithSampleData(page);
   const rows = page.locator("#history .h-row");
   await expect(rows).toHaveCount(7);
   await expect(rows.first().locator(".bars i")).toHaveCount(8);
   await expect(page.locator("#history .kw span")).toHaveCount(8);
-  // Beispieldaten: erster Motivator steigt, zweiter sinkt (siehe js/sample.js)
-  await expect(rows.nth(0).locator("small")).toContainText("steigt");
-  await expect(rows.nth(1).locator("small")).toContainText("sinkt");
-  // ausgelassene Woche ist als Lücke sichtbar
+  await expect(page.locator("#history .h-range")).toHaveText(/^KW \d+–\d+$/);
   expect(await rows.first().locator(".bars i.gap").count()).toBeGreaterThan(0);
-  expect(await fits(page), "Übersicht muss ohne Scrollen passen").toBe(true);
+  expect(await fitsScreen(page), "Übersicht muss ohne Scrollen passen").toBe(true);
 });
 
-test("Ältere Wochen per Knopf und per Wischen", async ({ page }) => {
-  await withSampleData(page);
-  await page.locator("#historyBtn").tap();
+test("[002 AK-5] Richtung und Höhe unter dem Namen", async ({ page }) => {
+  await openHistoryWithSampleData(page);
+  const rows = page.locator("#history .h-row small");
+  // Beispieldaten: erster Motivator steigt, zweiter sinkt (js/sample.js)
+  await expect(rows.nth(0)).toHaveText(/^steigt · jetzt \S+/);
+  await expect(rows.nth(1)).toHaveText(/^sinkt · jetzt \S+/);
+});
+
+test("[002 AK-6, AK-7] Regeln für die Richtung", async ({ page }) => {
+  await page.goto("./");
+  const t = (values) => page.evaluate(async (v) => (await import("./js/history.js")).trend(v).text, values);
+  expect(await t([])).toBe("noch keine Bewertung");
+  expect(await t([3, 3, 3, 3, 3])).toBe("teils · Richtung ab 1 weiteren Woche");
+  expect(await t([2, 2])).toBe("kaum · Richtung ab 4 weiteren Wochen");
+  expect(await t([2, 2, 3, 3, 3, 3])).toBe("steigt · jetzt teils");        // +1,0
+  expect(await t([3, 3, 3, 3, 3, 3, 3, 5])).toBe("steigt · jetzt weitgehend"); // Grenzfall: 3,5 gegen 3,0 = +0,5
+  expect(await t([3, 3, 3, 3, 3, 3, 3, 4])).toBe("stabil · teils");        // +0,25
+  expect(await t([4, 4, 4, 4, 4, 4, 2, 2])).toBe("sinkt · jetzt teils");   // −1,0
+});
+
+test("[002 AK-8] Ältere Wochen per Pfeil und per Wischen", async ({ page }) => {
+  await openHistoryWithSampleData(page);
   const range = page.locator("#history .h-range");
   const newest = await range.textContent();
   await expect(page.locator("#history .h-newer")).toBeDisabled();
   await page.locator("#history .h-older").tap();
   await expect(range).not.toHaveText(newest);
-  await expect(page.locator("#history .h-older")).toBeDisabled(); // Beispieldaten reichen für 2 Seiten
   await page.locator("#history .h-newer").tap();
   await expect(range).toHaveText(newest);
-  // Wischen nach rechts = ältere Wochen
   const card = page.locator("#history .h-card");
   const box = await card.boundingBox();
   await card.dispatchEvent("touchstart", { touches: [{ identifier: 1, clientX: box.x + 60, clientY: box.y + 200 }] });
@@ -51,44 +58,36 @@ test("Ältere Wochen per Knopf und per Wischen", async ({ page }) => {
   await expect(range).not.toHaveText(newest);
 });
 
-test("Detail: Linie, Vergleich in Zahlen und Kommentare, neueste zuerst", async ({ page }) => {
-  await withSampleData(page);
+test("[002 AK-10] Ohne Daten: „noch keine Bewertung“", async ({ page }) => {
+  await page.goto("./");
   await page.locator("#historyBtn").tap();
+  await expect(page.locator("#history .h-row").first().locator("small")).toHaveText("noch keine Bewertung");
+});
+
+test("[002 AK-11, AK-12, AK-13, AK-15] Detail: Linie, Vergleich, Kommentare neueste zuerst, Zurück", async ({ page }) => {
+  await openHistoryWithSampleData(page);
   await page.locator("#history .h-row").first().tap();
   await expect(page.locator("#detail")).toBeVisible();
+  await expect(page.locator("#detail .d-name")).not.toBeEmpty();
   await expect(page.locator("#detail .d-chart > svg")).toBeVisible();
-  await expect(page.locator("#detail .d-cmp")).toContainText("Letzte 4 Wochen");
-  const weeks = await page.locator("#detail .cl small").allTextContents();
+  await expect(page.locator("#detail .d-cmp")).toContainText(/Letzte 4 Wochen \d,\d · davor \d,\d/);
+  const weeks = (await page.locator("#detail .cl small").allTextContents()).map((w) => Number(w.replace("KW ", "")));
   expect(weeks.length).toBeGreaterThan(1);
-  const nums = weeks.map((w) => Number(w.replace("KW ", "")));
-  // neueste zuerst (Jahreswechsel in den Beispieldaten ausgeschlossen, sonst nur Länge prüfen)
-  if (nums.every((n, i) => i === 0 || Math.abs(n - nums[i - 1]) < 20)) expect(nums).toEqual([...nums].sort((a, b) => b - a));
+  const noYearChange = weeks.every((n, i) => i === 0 || Math.abs(n - weeks[i - 1]) < 20);
+  if (noYearChange) expect(weeks).toEqual([...weeks].sort((a, b) => b - a));
   await page.locator("#detailBack").tap();
   await expect(page.locator("#history")).toBeVisible();
   await page.locator("#historyBack").tap();
   await expect(page.locator("#home")).toBeVisible();
 });
 
-test("Ohne Daten: Verlauf erklärt sich statt leer zu sein", async ({ page }) => {
+test("[002 AK-14, AK-15] Einstieg aus der Auswertung, die weiter ohne Scrollen passt", async ({ page }) => {
   await page.goto("./");
-  await page.locator("#historyBtn").tap();
-  await expect(page.locator("#history .h-row").first().locator("small")).toHaveText("noch keine Bewertung");
-});
-
-test("Auswertung: Link zum Verlauf, passt weiter ohne Scrollen", async ({ page }) => {
-  await page.goto("./");
-  await page.locator("#homeBtn").tap();
-  const total = await page.locator("#progress button").count();
-  for (let i = 0; i < total; i++) {
-    await expect(page.locator("#stepCount")).toHaveText(`${i + 1} / ${total}`);
-    await page.locator('#scale .opt[data-v="3"]').tap();
-  }
-  await expect(page.locator("#summary")).toBeVisible();
-  expect(await fits(page), "Auswertung muss ohne Scrollen passen").toBe(true);
+  await rateWholeWeek(page, 3);
+  expect(await fitsScreen(page), "Auswertung muss ohne Scrollen passen").toBe(true);
   await page.locator("#sumHistoryBtn").tap();
   await expect(page.locator("#history")).toBeVisible();
-  // Richtung erst ab 6 Wochen
-  await expect(page.locator("#history .h-row").first().locator("small")).toContainText("Richtung ab 5 weiteren Wochen");
+  await expect(page.locator("#history .h-row").first().locator("small")).toHaveText("teils · Richtung ab 5 weiteren Wochen");
   await page.locator("#historyBack").tap();
   await expect(page.locator("#summary")).toBeVisible();
 });

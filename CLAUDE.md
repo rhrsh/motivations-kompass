@@ -6,20 +6,28 @@ Aufbau und Datenmodell: siehe README.md.
 ## Arbeitsweise (Entwicklungsprozess)
 Der Nutzer ist Product Owner und nutzt die App produktiv mit echten Daten. Er will professionelle Entwicklung
 lernen und auf die Arbeit übertragen. Daher die Fachbegriffe verwenden (Issue, Feature-Branch, Pull Request,
-CI, Preview, Abnahme, Merge, Release, Rollback) und kurz erklären, wenn sie neu sind.
+CI, Staging, Beta, Spec, Akzeptanzkriterium, Abnahme, Merge, Release, Tag, Hotfix, Rollback) und kurz erklären, wenn sie neu sind.
 
-Ablauf: **Issue → Feature-Branch → Pull Request → CI grün → Preview → Abnahme → Merge = Release**
-- Jede Änderung beginnt mit einem Issue (User Story mit Akzeptanzkriterien). Kleine Korrekturen dürfen ohne Issue starten.
-- Nie direkt auf `main` pushen. Arbeit auf einem Feature-Branch (`feature/…`, `fix/…`), dann Pull Request nach `main`.
-  Im PR auf das Issue verweisen (`Closes #…`) und beschreiben: was, warum, wie getestet, was der Nutzer in der Preview prüfen soll.
-- Nur der Nutzer merged. Claude merged nie selbst.
-- Production = `main` unter `/`. Preview = neuester offener Pull Request unter `/beta/` (siehe `.github/workflows/deploy.yml`).
-- Preview und Production sind über `js/env.js` getrennt (eigene Datenbank, eigener Offline-Speicher). Diese Trennung nie aufweichen.
-- Rollback: Merge-Commit auf einem Branch per `git revert` rückgängig machen und als PR einreichen.
+Ablauf (Staging + Spec-driven Development, siehe `specs/README.md`):
+**Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach `staging` → CI grün → Abnahme in der Beta → Release-PR nach `main` → Tag**
+- Branches: `main` = Production (`/`), `staging` = Beta (`/beta/`), Arbeit auf `feature/…` bzw. `fix/…` (von `staging` abzweigen).
+- Neue Funktion: zuerst Spec in `specs/` (nach `000-vorlage.md`) als eigener PR nach `staging`. Der Merge ist die Freigabe zum Bauen.
+  Kleine Korrekturen brauchen keine eigene Spec, ändern aber eine bestehende, wenn sich Verhalten ändert.
+- Umsetzung als PR nach `staging`, mit `Closes #…` und Verweis auf die Spec. Beschreiben: was, warum, wie getestet,
+  was der Nutzer in der Beta prüfen soll. Tests nennen Spec und Kriterium im Titel, z. B. `[002 AK-7]`.
+- Release: Claude eröffnet auf Wunsch einen PR `staging` → `main` mit Titel „Release vNN“ und Release Notes
+  (umgesetzte Specs und Issues, Hinweise zur Datensicherung). Nach dem Merge setzt Claude den Tag `vNN` auf `main`
+  und trägt in den Specs „Umgesetzt (vNN)“ ein (PR nach `staging`).
+- Hotfix (dringender Fehler in Production): Branch `fix/…` von `main`, PR nach `main`, danach PR `main` → `staging` (Backmerge).
+- Nie direkt auf `main` oder `staging` pushen. Nur der Nutzer merged. Claude merged nie selbst.
+- Ausgeliefert wird nur nach grünen Tests (`.github/workflows/deploy.yml` startet nach „Tests“).
+- Production und Beta sind über `js/env.js` getrennt (eigene Datenbank, eigener Offline-Speicher). Diese Trennung nie aufweichen.
+- `VERSION` in `sw.js`: jeder Feature-PR erhöht sie um eins. Bei Konflikten `staging` in den Branch mergen und die nächste freie Nummer nehmen.
+- Rollback: Merge-Commit per `git revert` auf einem Branch rückgängig machen und als PR einreichen.
 
 Definition of Done (vor jedem PR):
+- Akzeptanzkriterien der Spec sind durch Tests abgedeckt (Titel mit `[NNN AK-x]`), soweit automatisch prüfbar.
 - Automatische Tests grün: `npm test` (Pixel-Größe, hell und dunkel, ohne Konsolenfehler, Auswertung ohne Scrollen).
-  Neue Funktionen bekommen einen Test in `tests/`.
 - Zusätzlich neue Bildschirme mit Playwright ansehen (Screenshots hell und dunkel).
 - `VERSION` in `sw.js` um eins erhöht, neue App-Dateien in `FILES` eingetragen.
 - README aktuell. Datenschutzprüfung (siehe unten) erledigt.
@@ -45,7 +53,7 @@ Kommunikation:
 - Basis-URL: `https://rhrsh.github.io/motivations-kompass/#setup=…`. Bestehende `id`s beibehalten.
 
 ## Datenschutz (wichtig, das Repository ist öffentlich)
-- Keine persönlichen Daten ins Repository: keine Namen, E-Mail-Adressen, Arbeitgeber, Firmen, Kollegen, Orte.
+- Keine persönlichen Daten ins Repository, auch nicht in Specs, Issues oder PRs: keine Namen, E-Mail-Adressen, Arbeitgeber, Firmen, Kollegen, Orte.
 - Keine Namen fremder Produkte oder Firmen als Design-Vorlage nennen, weder in Dateien noch in Commit-Nachrichten. Stil nur allgemein beschreiben. Keine fremden Grafiken übernehmen, alles selbst zeichnen.
 - Vor jedem Push prüfen: `git grep -n -i` und `git log --format=%B` auf Namen, E-Mail-Adressen und persönliche Motivatoren.
 - Die persönlichen Motivatoren des Nutzers stehen nie im Code. Sie werden per Einrichtungslink (`#setup=…`) aufs Gerät geladen. `DEFAULT_MOTIVES` in `js/config.js` bleibt neutral.

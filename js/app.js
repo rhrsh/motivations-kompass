@@ -394,11 +394,26 @@ onTap($("history").querySelector(".h-newer"), () => pageHistory(-1));
   });
 }
 
-// ---- Preview (beta): Kennzeichnung und Werkzeuge zum Ausprobieren ----
+// ---- Beta: Kennzeichnung und Werkzeuge zum Ausprobieren ----
 if (IS_BETA) {
   document.documentElement.classList.add("beta");
   document.title += " Beta";
   $("betaTools").hidden = false;
+  // Beim allerersten Öffnen mit leerer Datenbank: Beispieldaten automatisch laden.
+  // Danach nie wieder von selbst, damit eigene Testeingaben und „Daten zurücksetzen“ erhalten bleiben.
+  const SEEDED = "kompass-beta:seeded";
+  let seeded = true;
+  try { seeded = localStorage.getItem(SEEDED) === "1"; } catch {}
+  if (!seeded) {
+    try {
+      if (!(await store.loadAllEntries()).length) {
+        const { sampleEntries } = await import("./sample.js");
+        await store.writeEntries(sampleEntries(MOTIVES));
+        try { sessionStorage.setItem("kompass:notice", "Beta mit Beispieldaten der letzten Wochen gestartet."); } catch {}
+      }
+      localStorage.setItem(SEEDED, "1");
+    } catch {}
+  }
   onTap($("sampleBtn"), async () => {
     const { sampleEntries } = await import("./sample.js");
     try { await store.writeEntries(sampleEntries(MOTIVES)); } catch { flashSaved(false); return; }
@@ -429,7 +444,7 @@ store.requestPersistence();
 // Übernimmt eine neue Version, lädt die App sich einmal selbst neu. Jede Eingabe
 // liegt schon in der Datenbank (auch Kommentare, bei jedem Tastendruck), es geht nichts verloren.
 if ("serviceWorker" in navigator) {
-  // Nur ein Wechsel des EIGENEN Service Workers ist ein Update. Beim ersten Besuch der Preview ist kurz
+  // Nur ein Wechsel des EIGENEN Service Workers ist ein Update. Beim ersten Besuch der Beta ist kurz
   // noch der von Production zuständig (/beta/ liegt darunter); dessen Ablösung ist kein Grund zum Neuladen.
   const own = new URL("./sw.js", location.href).href;
   const hadController = navigator.serviceWorker.controller?.scriptURL === own;

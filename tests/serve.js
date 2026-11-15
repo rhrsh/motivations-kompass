@@ -1,6 +1,6 @@
 // Kleiner Webserver für Tests, ohne Pakete. Bildet die echte Auslieferung nach:
 //   /        Production (dieser Stand)
-//   /beta/   Preview (hier derselbe Stand, aber eigene Umgebung mit eigener Datenbank)
+//   /beta/   Beta (hier derselbe Stand, aber eigene Umgebung mit eigener Datenbank)
 // Aufruf: node tests/serve.js [port]
 const http = require("http"), fs = require("fs"), path = require("path");
 const ROOT = path.join(__dirname, "..");
