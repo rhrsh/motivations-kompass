@@ -1,0 +1,96 @@
+# CD (Continuous Deployment): liefert die App automatisch auf GitHub Pages aus.
+#
+#   Production  /motivations-kompass/        Stand von main (jeder Merge ist ein Release)
+#   Preview     /motivations-kompass/beta/   neuester offener Pull Request zum Ausprobieren
+#
+# Beide Umgebungen werden bei jedem Lauf zusammen neu ausgeliefert, weil GitHub Pages nur eine
+# Website pro Repository kennt.
+#
+# Sicherheit: "pull_request_target" läuft mit den Rechten von main. Der Code des Pull Requests wird
+# hier nur als Dateien kopiert, nie ausgeführt, und nur Pull Requests aus diesem Repository zählen.
+name: Auslieferung
+
+on:
+  push:
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Production (main) holen
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: prod
+          persist-credentials: false
+
+      - name: Welcher Pull Request kommt in die Preview?
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          ACTION: ${{ github.event.action }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ "$EVENT" = "pull_request_target" ] && [ "$ACTION" != "closed" ]; then
+            echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"; echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          else
+            # Sonst: zuletzt geänderter offener Pull Request aus diesem Repository, falls es einen gibt
+            gh pr list --repo "$GITHUB_REPOSITORY" --base main --state open --limit 20 \
+              --json number,headRefOid,updatedAt,isCrossRepository \
+              --jq '[.[] | select(.isCrossRepository | not)] | sort_by(.updatedAt) | last
+                    | if . then "sha=\(.headRefOid)\nnumber=\(.number)" else "" end' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Preview (Pull Request) holen
+        if: steps.preview.outputs.sha != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.preview.outputs.sha }}
+          path: beta
+          persist-credentials: false
+
+      - name: Website zusammenstellen
+        env:
+          PREVIEW_NUMBER: ${{ steps.preview.outputs.number }}
+        run: |
+          # Nur die Dateien der App, keine Tests oder Werkzeuge
+          APP="index.html manifest.webmanifest sw.js css js icons"
+          mkdir site
+          (cd prod && cp -r $APP ../site/)
+          if [ -d beta ]; then
+            mkdir site/beta
+            (cd beta && cp -r $APP ../site/beta/)
+            # Installiert soll die Preview anders heißen als die echte App
+            sed -i 's/"name": "[^"]*"/"name": "Motivation Tracker Beta"/; s/"short_name": "[^"]*"/"short_name": "Beta"/' site/beta/manifest.webmanifest
+            echo "Preview: Pull Request #$PREVIEW_NUMBER" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Preview: kein offener Pull Request" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -18,8 +18,13 @@ Sicherungen weiter funktionieren.
 | `js/faces.js` | Die fünf Gesichter der Skala (SVG) |
 | `js/icons.js` | Neutraler Symbolkasten für die Motivatoren (Zuordnung im Einrichtungslink) |
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
+| `js/env.js` | **Umgebung:** Production oder Preview, eigene Datenbank und eigener Offline-Speicher |
+| `js/week.js` | Kalenderwoche (ISO) |
+| `js/sample.js` | Beispieldaten, nur in der Preview |
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |
+| `tests/`, `playwright.config.js`, `package.json` | Automatische Tests (nur Entwicklung, nicht Teil der App) |
+| `.github/workflows/` | CI (Tests) und Auslieferung (Production und Preview) |
 
 ## Bedienung
 
@@ -78,13 +83,34 @@ diesen einen Datensatz; es gibt keinen Entwurf und keinen Speichermoment. Der Sc
 sondern beim Anzeigen berechnet. Alte Daten aus dem localStorage (bis Version v6) übernimmt die App beim ersten
 Start automatisch.
 
-## Änderungen veröffentlichen
+## Umgebungen
 
-1. Code ändern, committen, auf `main` pushen.
-2. In `sw.js` die `VERSION` erhöhen.
-3. GitHub Pages baut automatisch neu (ca. 1 Minute).
-4. Auf dem Handy: App öffnen oder aus dem Hintergrund holen. Die App lädt sich dann selbst neu.
-   Welche Version läuft, steht unten in der Zusammenfassung.
+| Umgebung | Adresse | Inhalt | Daten |
+|---|---|---|---|
+| **Production** | `…/motivations-kompass/` | Stand von `main` | echte Daten (Datenbank `kompass`) |
+| **Preview** | `…/motivations-kompass/beta/` | neuester offener Pull Request | eigene Testdaten (Datenbank `kompass-beta`) |
+
+Beide liegen unter derselben Adresse und teilen sich den Speicher des Browsers. `js/env.js` erkennt die Umgebung
+am Pfad und gibt Datenbank und Offline-Speicher eigene Namen, damit die Preview echte Daten nie berührt.
+Die Preview ist mit „Beta“ gekennzeichnet und hat unten „Beispieldaten laden“ und „Daten zurücksetzen“.
+Um mit echten Daten zu testen: in Production „Daten sichern“, in der Preview „Sicherung laden“.
+
+## Entwicklungsprozess
+
+```
+Issue → Feature-Branch → Pull Request → Tests (CI) → Preview → Abnahme → Merge = Release → Production
+```
+
+1. **Issue:** User Story mit Akzeptanzkriterien im Backlog (GitHub Issues).
+2. **Feature-Branch:** eigene Arbeitskopie, z. B. `feature/verlauf`. `main` bleibt unberührt.
+3. **Pull Request:** Antrag, die Änderung zu übernehmen. Beschreibung, Änderungen und Prüfergebnisse an einem Ort.
+4. **CI** (`.github/workflows/ci.yml`): Die Tests in `tests/` laufen automatisch. Lokal: `npm install`, dann `npm test`.
+5. **Preview** (`.github/workflows/deploy.yml`): Der Pull Request wird automatisch unter `/beta/` ausgeliefert.
+6. **Abnahme:** Der Product Owner prüft in der Preview gegen die Akzeptanzkriterien.
+7. **Merge = Release:** Übernahme in `main`, automatische Auslieferung nach Production (ca. 1 Minute).
+   Auf dem Handy lädt sich die App beim nächsten Öffnen selbst neu. Die Version steht unten auf dem Startbildschirm.
+
+**Rollback:** Den Merge mit „Revert“ rückgängig machen (auf GitHub im Pull Request), die alte Version ist dann wieder live.
 
 ## Grenzen und nächste Schritte
 
