@@ -18,7 +18,7 @@ nie gefährden, und neue Funktionen sollen vor dem Release ausprobiert werden k�
 - **AK-1** Production (Branch `main`) liegt unter `…/motivations-kompass/app/`, die Beta (Branch `staging`) unter `…/motivations-kompass/beta/`.
 - **AK-2** Die Beta nutzt eine eigene Datenbank. Daten der Production werden dort nie gelesen oder verändert.
 - **AK-3** Production und Beta haben getrennte Offline-Speicher. Keiner löscht den anderen, Production speichert keine Dateien der Beta.
-- **AK-4** Die Beta ist erkennbar: Abzeichen „Beta“ in der App, installiert mit Namen „Motivation Tracker Beta“ und eigenem Icon.
+- **AK-4** Die Beta ist erkennbar: Abzeichen „Beta“ in der App, installiert mit Namen „Motivation Tracker Beta“, unter dem Icon „Motivation Beta“, und eigenem Icon.
 - **AK-5** Wird die Beta zum ersten Mal mit leerer Datenbank geöffnet, lädt sie automatisch Beispieldaten für die zurückliegenden Wochen.
 - **AK-6** „Daten zurücksetzen“ leert die Beta. Danach werden keine Beispieldaten mehr von selbst geladen.
 - **AK-7** „Beispieldaten laden“ füllt die zurückliegenden Wochen mit erkennbaren Verläufen (steigt, sinkt, stabil) und einer ausgelassenen Woche. Die laufende Woche bleibt frei.
