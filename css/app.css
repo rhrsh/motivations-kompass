@@ -143,19 +143,6 @@ button:focus-visible, textarea:focus-visible { outline: 3px solid var(--accent);
 .cl p { margin: 0; overflow-wrap: anywhere; }
 .note .link.small { padding: 0 2px; }
 
-/* Eigene Entscheidungsfrage (Spec 003) */
-.h-question {
-  width: 100%; border: 0; background: none; text-align: left; padding: 2px 4px;
-  font-size: 16px; line-height: 1.35; font-weight: 600; color: var(--ink); overflow-wrap: anywhere;
-}
-.h-question .eyebrow { display: block; margin-bottom: 2px; }
-.h-question.empty { color: var(--accent); font-size: 14px; font-weight: 650; padding: 4px; }
-.q-edit { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
-.q-edit textarea { box-shadow: none; background: var(--bg); min-height: 72px; }
-.q-edit-foot { display: flex; align-items: center; gap: 8px; }
-.q-count { flex: 1; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.btn.small { width: auto; padding: 10px 16px; font-size: 15px; }
-
 /* Preview (beta): deutlich gekennzeichnet, damit sie nie mit der echten App verwechselt wird */
 .beta-badge { display: none; }
 .beta .beta-badge {

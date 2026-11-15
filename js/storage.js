@@ -79,22 +79,6 @@ export async function loadMotives() {
   const row = await done(tx.objectStore("settings").get("motives"));
   return Array.isArray(row?.value) && row.value.length ? row.value : null;
 }
-// Eigene Entscheidungsfrage (Spec 003). Leerer Text entfernt sie.
-export const QUESTION_MAX = 140;
-export async function loadQuestion() {
-  const tx = (await db()).transaction("settings");
-  const row = await done(tx.objectStore("settings").get("decisionQuestion"));
-  return typeof row?.value === "string" && row.value.trim() ? row.value : "";
-}
-export async function saveQuestion(text) {
-  const q = String(text ?? "").trim().slice(0, QUESTION_MAX);
-  const tx = (await db()).transaction("settings", "readwrite");
-  if (q) tx.objectStore("settings").put({ key: "decisionQuestion", value: q });
-  else tx.objectStore("settings").delete("decisionQuestion");
-  await committed(tx);
-  return q;
-}
-
 export async function saveMotives(list) {
   const tx = (await db()).transaction("settings", "readwrite");
   tx.objectStore("settings").put({ key: "motives", value: list });
@@ -151,15 +135,13 @@ export async function requestPersistence() {
 // Sicherung als JSON-Datei: alle Wochen und die Motivatoren
 export async function exportFile() {
   const tx = (await db()).transaction(["entries", "settings"]);
-  const [rows, motives, question] = await Promise.all([
+  const [rows, motives] = await Promise.all([
     done(tx.objectStore("entries").getAll()),
     done(tx.objectStore("settings").get("motives")),
-    done(tx.objectStore("settings").get("decisionQuestion")),
   ]);
   const weeks = {};
   for (const r of rows) (weeks[r.week] ??= {})[r.motive] = { rating: r.rating, comment: r.comment, updatedAt: r.updatedAt };
-  const data = { format: "motivations-kompass/2", exportedAt: new Date().toISOString(), motives: motives?.value ?? null,
-    decisionQuestion: question?.value ?? null, weeks };
+  const data = { format: "motivations-kompass/2", exportedAt: new Date().toISOString(), motives: motives?.value ?? null, weeks };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -191,9 +173,9 @@ export async function importFile(file) {
   }
   const valid = rows.filter((r) => /^\d{4}-W\d{2}$/.test(r.week) && r.motive
     && (r.rating === null || [1, 2, 3, 4, 5].includes(r.rating)) && typeof r.comment === "string");
-  const hasSettings = (Array.isArray(data?.motives) && data.motives.length)
-    || (typeof data?.decisionQuestion === "string" && data.decisionQuestion.trim());
-  if (!valid.length && !hasSettings) throw new Error("Keine Daten in der Datei gefunden");
+  // Auch eine Sicherung ohne Bewertungen, aber mit Motivatoren, ist gültig (z. B. direkt nach der Einrichtung)
+  const hasMotives = Array.isArray(data?.motives) && data.motives.length;
+  if (!valid.length && !hasMotives) throw new Error("Keine Daten in der Datei gefunden");
 
   const tx = (await db()).transaction(["entries", "settings"], "readwrite");
   const entries = tx.objectStore("entries"), settings = tx.objectStore("settings");
@@ -209,14 +191,8 @@ export async function importFile(file) {
       && !(await done(settings.get("motives")))) {
     settings.put({ key: "motives", value: data.motives }); motivesTaken = true;
   }
-  // Entscheidungsfrage nur übernehmen, wenn auf dem Gerät noch keine steht (Spec 003, AK-9)
-  let questionTaken = false;
-  if (typeof data.decisionQuestion === "string" && data.decisionQuestion.trim()
-      && !(await done(settings.get("decisionQuestion")))) {
-    settings.put({ key: "decisionQuestion", value: data.decisionQuestion.trim().slice(0, QUESTION_MAX) }); questionTaken = true;
-  }
   await committed(tx);
-  return { added, weeks: new Set(valid.map((r) => r.week)).size, motivesTaken, questionTaken };
+  return { added, weeks: new Set(valid.map((r) => r.week)).size, motivesTaken };
 }
 
 // ---- Nur Beta ----
