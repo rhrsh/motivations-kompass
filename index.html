@@ -26,6 +26,7 @@
     <p class="status-text" id="homeText"></p>
     <div class="spacer"></div>
     <button class="btn" id="homeBtn" type="button">Woche bewerten</button>
+    <button class="btn ghost" id="historyBtn" type="button">Verlauf</button>
     <div class="foot">
       <span class="foot-links">
         <button class="link small" id="exportBtn" type="button">Daten sichern</button>
@@ -73,12 +74,46 @@
       </div>
     </div>
     <div class="card"><div class="items" id="items"></div></div>
-    <p class="note">Zum Ändern einen Motivator antippen.</p>
+    <p class="note">Zum Ändern einen Motivator antippen. <button class="link small" id="sumHistoryBtn" type="button">Verlauf ansehen</button></p>
     <div class="spacer"></div>
     <div class="actions">
       <button class="btn ghost" id="redoBtn" type="button">Neu ausfüllen</button>
       <button class="btn" id="doneBtn" type="button">Fertig</button>
     </div>
+  </section>
+
+  <!-- Verlauf: Entwicklung je Motivator über die Wochen -->
+  <section class="screen" id="history" hidden>
+    <div class="toprow">
+      <button class="round" id="historyBack" type="button" aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <div><span class="eyebrow accent">Verlauf</span><h1>Entwicklung</h1></div>
+    </div>
+    <div class="card h-card">
+      <div class="h-nav">
+        <button class="pager h-older" type="button" aria-label="Ältere Wochen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+        <span class="h-range"></span>
+        <button class="pager h-newer" type="button" aria-label="Neuere Wochen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="h-head"><span></span><div class="kw" aria-hidden="true"></div></div>
+      <div class="h-rows"></div>
+    </div>
+    <p class="note">Richtung: letzte 4 bewertete Wochen gegenüber den 4 davor. Zeile antippen für Details.</p>
+  </section>
+
+  <!-- Detail: ein Motivator über alle Wochen, mit Kommentaren -->
+  <section class="screen" id="detail" hidden>
+    <div class="toprow">
+      <button class="round" id="detailBack" type="button" aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+      <span class="eyebrow accent">Verlauf</span>
+    </div>
+    <div class="d-top center">
+      <div class="qicon d-icon"></div>
+      <h2 class="d-name"></h2>
+      <p class="d-q"></p>
+    </div>
+    <div class="chart d-chart"></div>
+    <p class="d-cmp"></p>
+    <div class="d-comments"></div>
   </section>
 
 </div>
