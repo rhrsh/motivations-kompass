@@ -99,7 +99,7 @@ Start automatisch.
 
 Beide liegen unter derselben Adresse und teilen sich den Speicher des Browsers. `js/env.js` erkennt die Umgebung
 am Pfad und gibt Datenbank und Offline-Speicher eigene Namen, damit die Preview echte Daten nie berührt.
-Die Preview ist mit „Beta“ gekennzeichnet und hat unten „Beispieldaten laden“ und „Daten zurücksetzen“.
+Die Preview ist mit „Beta“ gekennzeichnet (in der App und mit eigenem Icon aus `icons/beta/`, das die Auslieferung nur dort einsetzt) und hat unten „Beispieldaten laden“ und „Daten zurücksetzen“.
 Um mit echten Daten zu testen: in Production „Daten sichern“, in der Preview „Sicherung laden“.
 
 ## Entwicklungsprozess
