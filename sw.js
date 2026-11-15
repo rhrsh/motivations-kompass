@@ -1,6 +1,6 @@
 // Service Worker: speichert die App-Dateien, damit sie offline startet.
 // Bei jeder Änderung an der App VERSION erhöhen, sonst sieht das Handy die alte Version.
-const VERSION = "v20";
+const VERSION = "v19";
 // Umgebung wie in js/env.js: Production unter /, Preview (beta) unter /beta/.
 // Beide teilen sich den Speicher des Browsers, daher eigene Namen und eigenes Aufräumen.
 const IS_BETA = /\/beta\//.test(self.location.pathname);

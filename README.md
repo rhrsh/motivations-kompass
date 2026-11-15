@@ -46,8 +46,6 @@ Sicherungen weiter funktionieren.
   Wochen. Ausgelassene Wochen als grauer Strich. Ältere Wochen per Pfeil oder Wischen (nach rechts = älter).
   Zeile antippen → Detail: Linie über alle Wochen, Vergleich in Zahlen, alle Kommentare (neueste zuerst).
   Bewusst ohne Gesamtschnitt, Gewichtung oder Empfehlung: Die App zeigt, der Mensch entscheidet.
-  Oben im Verlauf lässt sich eine **eigene Entscheidungsfrage** festhalten (höchstens 140 Zeichen, nur auf dem Gerät,
-  Teil der Sicherung). Spec: `specs/003-entscheidungsfrage.md`.
 - Android-Zurück-Geste: ein Motivator zurück bzw. zum Start; vom Start aus wird die App verlassen.
 
 ## Gestaltung
@@ -83,7 +81,7 @@ IndexedDB-Datenbank `kompass` (nur auf dem Gerät) mit zwei Tabellen (Object Sto
 | Tabelle | Schlüssel | Inhalt |
 |---|---|---|
 | `entries` | `[week, motive]` | ein Datensatz je Kalenderwoche und Motivator. Index `byWeek` auf `week` |
-| `settings` | `key` | Einstellungen: `motives` (persönliche Motivatoren), `decisionQuestion` (eigene Entscheidungsfrage) |
+| `settings` | `key` | Einstellungen, z. B. `motives` (persönliche Motivatoren) |
 
 ```json
 { "week": "2026-W46", "motive": "verantwortung", "rating": 4, "comment": "…", "updatedAt": "2026-11-13T09:59:54.160Z" }
@@ -137,5 +135,5 @@ Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach staging → Test
 - **Sicherung laden** führt die Datei mit den Daten auf dem Gerät zusammen: Gibt es einen Eintrag (Woche + Motivator)
   doppelt, gewinnt der neuere. Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine
   eingerichtet sind. Liest auch Sicherungen aus der Zeit vor v7.
-- **Offen:** Erinnerung an den Wochencheck.
+- **Offen:** Erinnerung an den Wochencheck, eigene Entscheidungsfrage im Verlauf.
 - Bewusst nicht: Mustererkennung, Cloud-Speicher, Konten.

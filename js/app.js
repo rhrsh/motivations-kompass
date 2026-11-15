@@ -210,7 +210,6 @@ window.addEventListener("popstate", () => {
   pushed = false;
   if (!$("step").hidden && step > 0 && !fromSummary) { goTo(step - 1, -1); leaveHome(); }
   else if (!$("step").hidden && fromSummary) { fromSummary = false; renderSummary(); show("summary"); }
-  else if (!$("history").hidden && !$("questionEdit").hidden) { closeQuestionEdit(); leaveHome(); } // AK-7: verwerfen
   else if (!$("detail").hidden) { show("history"); leaveHome(); }
   else if (!$("history").hidden && historyFrom === "summary") { renderSummary(); show("summary"); leaveHome(); }
   else if (!$("home").hidden) { history.back(); } // Start: App normal verlassen
@@ -344,9 +343,8 @@ $("importFile").addEventListener("change", async (e) => {
     const r = await store.importFile(file);
     msg = r.added
       ? `Sicherung geladen: ${r.added} Einträge aus ${r.weeks} ${r.weeks === 1 ? "Woche" : "Wochen"} übernommen.`
-      : r.motivesTaken || r.questionTaken ? "Sicherung geladen." : "Sicherung geladen. Alles war schon auf dem Gerät.";
+      : "Sicherung geladen. Alles war schon auf dem Gerät.";
     if (r.motivesTaken) msg += " Motivatoren übernommen.";
-    if (r.questionTaken) msg += " Entscheidungsfrage übernommen.";
   } catch {
     msg = "Diese Datei konnte nicht geladen werden. Ist es eine Sicherung des Motivation Trackers?";
   }
@@ -360,51 +358,8 @@ let historyRows = [], historyPage = 0, historyPages = 1, historyFrom = "home";
 async function openHistory(from) {
   historyFrom = from; historyPage = 0;
   try { historyRows = await store.loadAllEntries(); } catch { historyRows = []; flashSaved(false); }
-  try { question = await store.loadQuestion(); } catch { question = ""; }
-  closeQuestionEdit(); renderQuestion();
   renderHistory(); show("history");
 }
-
-// ---- Eigene Entscheidungsfrage (Spec 003) ----
-let question = "";
-function renderQuestion() {
-  const b = $("questionBtn");
-  b.classList.toggle("empty", !question);
-  if (question) {
-    b.innerHTML = '<span class="eyebrow accent">Meine Frage</span><span class="q-text"></span>';
-    b.querySelector(".q-text").textContent = question;
-    b.setAttribute("aria-label", `Meine Frage: ${question}. Antippen zum Ändern`);
-  } else {
-    b.textContent = "+ Eigene Frage festhalten";
-    b.removeAttribute("aria-label");
-  }
-}
-function updateQuestionCount() {
-  const left = store.QUESTION_MAX - $("questionInput").value.length;
-  $("questionCount").textContent = left === 1 ? "noch 1 Zeichen" : `noch ${left} Zeichen`;
-}
-function openQuestionEdit() {
-  $("questionInput").value = question;
-  updateQuestionCount();
-  $("questionBtn").hidden = true; $("questionEdit").hidden = false;
-  $("questionInput").focus();
-}
-function closeQuestionEdit() {
-  $("questionEdit").hidden = true; $("questionBtn").hidden = false;
-}
-async function saveQuestionEdit() {
-  try { question = await store.saveQuestion($("questionInput").value); }
-  catch { $("questionCount").textContent = "Speichern fehlgeschlagen"; return; }
-  $("questionInput").blur(); closeQuestionEdit(); renderQuestion();
-}
-onTap($("questionBtn"), openQuestionEdit);
-onTap($("questionCancel"), () => { $("questionInput").blur(); closeQuestionEdit(); });
-onTap($("questionSave"), saveQuestionEdit);
-$("questionInput").addEventListener("input", updateQuestionCount);
-$("questionInput").addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); saveQuestionEdit(); }
-});
-for (const id of ["questionCancel", "questionSave"]) $(id).addEventListener("mousedown", (e) => e.preventDefault());
 function renderHistory() {
   historyPages = renderOverview($("history"), {
     motives: MOTIVES, rows: historyRows, page: historyPage,

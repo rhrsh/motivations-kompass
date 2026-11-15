@@ -1,6 +1,6 @@
 # 003 – Eigene Entscheidungsfrage im Verlauf
 
-**Status:** Freigegeben · **Issue:** #11
+**Status:** Entwurf · **Issue:** #11
 
 ## Problem
 
