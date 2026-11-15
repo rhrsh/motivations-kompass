@@ -135,5 +135,6 @@ Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach staging → Test
 - **Sicherung laden** führt die Datei mit den Daten auf dem Gerät zusammen: Gibt es einen Eintrag (Woche + Motivator)
   doppelt, gewinnt der neuere. Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine
   eingerichtet sind. Liest auch Sicherungen aus der Zeit vor v7.
-- **Offen:** Erinnerung an den Wochencheck, eigene Entscheidungsfrage im Verlauf.
+- **Offen:** Erinnerung an den Wochencheck.
+- Verworfen: eigene Entscheidungsfrage im Verlauf (`specs/003-entscheidungsfrage.md`).
 - Bewusst nicht: Mustererkennung, Cloud-Speicher, Konten.

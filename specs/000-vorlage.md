@@ -1,6 +1,6 @@
 # NNN – Titel
 
-**Status:** Entwurf | Freigegeben | Umgesetzt (vNN) · **Issue:** #…
+**Status:** Entwurf | Freigegeben | Umgesetzt (vNN) | Verworfen · **Issue:** #…
 
 ## Problem
 

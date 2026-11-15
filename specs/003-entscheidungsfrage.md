@@ -1,6 +1,10 @@
 # 003 – Eigene Entscheidungsfrage im Verlauf
 
-**Status:** Entwurf · **Issue:** #11
+**Status:** Verworfen · **Issue:** #11
+
+> **Verworfen in der Abnahme:** Gebaut und in der Beta geprüft (#13), danach vom Product Owner verworfen:
+> Die Funktion wird nicht gebraucht. Per Rollback von `staging` entfernt (nie in Production).
+> Die Spec bleibt als Nachweis der Entscheidung erhalten.
 
 ## Problem
 
