@@ -20,6 +20,7 @@ Sicherungen weiter funktionieren.
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
 | `js/env.js` | **Umgebung:** Production oder Preview, eigene Datenbank und eigener Offline-Speicher |
 | `js/week.js` | Kalenderwoche (ISO) |
+| `js/history.js` | **Verlauf:** Wochenliste, Richtung, Übersicht und Detail |
 | `js/sample.js` | Beispieldaten, nur in der Preview |
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |
@@ -37,6 +38,12 @@ Sicherungen weiter funktionieren.
 - **Auswertung** (passt ohne Scrollen auf ein Pixel-Handy): Gesamt-Gesicht im Ring, eine Zeile je Motivator mit
   Gesicht und Symbol, Kommentare per Sprechblase aufklappbar. Zeile antippen = ändern.
   „Neu ausfüllen“ löscht die Bewertungen der Woche (zweiter Tipp bestätigt), „Fertig“ führt zum Start.
+- **Verlauf** (Knopf auf dem Start, Link in der Auswertung): je Motivator eine Zeile mit 8 Wochenbalken
+  (Höhe = Bewertung, Farbe unterstützt), darunter Richtung und Höhe, z. B. „steigt · jetzt weitgehend“.
+  Richtung = Schnitt der letzten 4 bewerteten Wochen gegen die 4 davor, ab 0,5 Unterschied, erst ab 6 bewerteten
+  Wochen. Ausgelassene Wochen als grauer Strich. Ältere Wochen per Pfeil oder Wischen (nach rechts = älter).
+  Zeile antippen → Detail: Linie über alle Wochen, Vergleich in Zahlen, alle Kommentare (neueste zuerst).
+  Bewusst ohne Gesamtschnitt, Gewichtung oder Empfehlung: Die App zeigt, der Mensch entscheidet.
 - Android-Zurück-Geste: ein Motivator zurück bzw. zum Start; vom Start aus wird die App verlassen.
 
 ## Gestaltung
@@ -118,6 +125,5 @@ Issue → Feature-Branch → Pull Request → Tests (CI) → Preview → Abnahme
 - **Sicherung laden** führt die Datei mit den Daten auf dem Gerät zusammen: Gibt es einen Eintrag (Woche + Motivator)
   doppelt, gewinnt der neuere. Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine
   eingerichtet sind. Liest auch Sicherungen aus der Zeit vor v7.
-- **Offen:** Verlauf über die Wochen (Daten werden schon gespeichert,
-  aber nicht angezeigt), Erinnerung an den Wochencheck.
+- **Offen:** Erinnerung an den Wochencheck, eigene Entscheidungsfrage im Verlauf.
 - Bewusst nicht: Mustererkennung, Cloud-Speicher, Konten.
