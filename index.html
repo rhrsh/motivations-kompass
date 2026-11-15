@@ -14,6 +14,7 @@
   <script type="module" src="js/app.js"></script>
 </head>
 <body>
+<div class="beta-badge" aria-hidden="true">Beta</div>
 <div class="app">
 
   <!-- Start: Status der Woche und ein Knopf -->
@@ -32,6 +33,11 @@
       </span>
       <input type="file" id="importFile" accept=".json,application/json" hidden>
       <span id="version"></span>
+    </div>
+    <!-- Nur in der Preview (beta) sichtbar -->
+    <div class="foot beta-tools" id="betaTools" hidden>
+      <button class="link small" id="sampleBtn" type="button">Beispieldaten laden</button>
+      <button class="link small" id="resetBtn" type="button">Daten zurücksetzen</button>
     </div>
   </section>
 

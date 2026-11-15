@@ -1,4 +1,5 @@
 // Datenhaltung: IndexedDB, die eingebaute Datenbank des Browsers. Alles bleibt auf dem Gerät.
+// Datenbankname je Umgebung: "kompass" (Production) bzw. "kompass-beta" (Preview), siehe env.js.
 //
 // Datenbank "kompass" mit zwei Tabellen (Object Stores):
 //
@@ -13,7 +14,8 @@
 //
 // Jede Eingabe schreibt sofort einen einzigen Datensatz. Es gibt keinen Entwurf und keinen Speichermoment.
 
-const DB_NAME = "kompass";
+import { DB_NAME, IS_BETA } from "./env.js";
+
 const DB_VERSION = 1;
 
 let dbPromise = null;
@@ -82,6 +84,7 @@ export async function saveMotives(list) {
 // Erst nach erfolgreichem Schreiben werden die alten Schlüssel entfernt.
 const OLD = { checks: "kompass:checks", draft: "kompass:draft", motives: "kompass:motives" };
 export async function migrateFromLocalStorage() {
+  if (IS_BETA) return; // die alten Daten gehören zu Production, die Preview fasst sie nicht an
   let checks, draft, motives;
   try {
     checks = JSON.parse(localStorage.getItem(OLD.checks) || "null");
@@ -182,6 +185,23 @@ export async function importFile(file) {
   }
   await committed(tx);
   return { added, weeks: new Set(valid.map((r) => r.week)).size, motivesTaken };
+}
+
+// ---- Nur Preview (beta) ----
+
+// Beispieldaten schreiben. Überschreibt nur die erzeugten zurückliegenden Wochen.
+export async function writeEntries(rows) {
+  if (!IS_BETA) throw new Error("Nur in der Preview erlaubt");
+  const tx = (await db()).transaction("entries", "readwrite");
+  for (const r of rows) tx.objectStore("entries").put(r);
+  await committed(tx);
+}
+
+// Alle Daten der Preview löschen (Datenbank entfernen)
+export async function resetAll() {
+  if (!IS_BETA) throw new Error("Nur in der Preview erlaubt");
+  (await db()).close(); dbPromise = null;
+  await new Promise((res, rej) => { const r = indexedDB.deleteDatabase(DB_NAME); r.onsuccess = res; r.onerror = () => rej(r.error); r.onblocked = res; });
 }
 
 // Einrichtungslink: ...#setup=<base64url-JSON>. Der Teil nach # wird nie an den Server geschickt.
