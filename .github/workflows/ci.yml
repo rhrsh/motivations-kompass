@@ -1,12 +1,14 @@
-# CI (Continuous Integration): automatische Tests bei jedem Pull Request und auf main.
-# Rot heißt: nicht mergen. Die Tests stehen in tests/, lokal laufen sie mit `npm test`.
+# CI (Continuous Integration): automatische Tests.
+# Laufen bei jedem Pull Request und bei jeder Änderung auf staging und main.
+# Rot heißt: nicht mergen. Nur nach grünen Tests wird ausgeliefert (siehe deploy.yml).
+# Lokal: `npm test`.
 name: Tests
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, staging]
   push:
-    branches: [main]
+    branches: [main, staging]
 
 permissions:
   contents: read

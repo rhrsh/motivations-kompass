@@ -1,28 +1,29 @@
-# CD (Continuous Deployment): liefert die App automatisch auf GitHub Pages aus.
+# CD (Continuous Deployment): liefert die App auf GitHub Pages aus.
 #
-#   Production  /motivations-kompass/        Stand von main (jeder Merge ist ein Release)
-#   Preview     /motivations-kompass/beta/   neuester offener Pull Request zum Ausprobieren
+#   Production  /motivations-kompass/app/    Branch main     (echte Daten)
+#   Beta        /motivations-kompass/beta/   Branch staging  (integrierter Stand aller fertigen Tickets, Testdaten)
+#   Weiterleitung /motivations-kompass/      aus root/ von main (frühere Adresse → app/)
 #
-# Beide Umgebungen werden bei jedem Lauf zusammen neu ausgeliefert, weil GitHub Pages nur eine
-# Website pro Repository kennt.
+# Production und Beta liegen nebeneinander, nicht ineinander, damit sich beide als eigene Apps
+# installieren lassen (specs/001-umgebungen.md, AK-10).
 #
-# Sicherheit: "pull_request_target" läuft mit den Rechten von main. Der Code des Pull Requests wird
-# hier nur als Dateien kopiert, nie ausgeführt, und nur Pull Requests aus diesem Repository zählen.
+# Ausgeliefert wird erst, wenn die Tests ("Tests", ci.yml) auf main oder staging grün durchgelaufen sind.
+# GitHub Pages kennt nur eine Website pro Repository, daher werden beide Umgebungen bei jedem Lauf
+# zusammen neu ausgeliefert, jeweils mit dem aktuellen Stand ihres Branches.
+# "workflow_run" läuft mit der Pipeline-Version von main. Änderungen an dieser Datei wirken erst nach dem Release.
 name: Auslieferung
 
 on:
-  push:
-    branches: [main]
-  pull_request_target:
-    branches: [main]
-    types: [opened, synchronize, reopened, closed]
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main, staging]
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
-  pull-requests: read
 
 concurrency:
   group: pages
@@ -30,7 +31,9 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name != 'pull_request_target' || github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -43,51 +46,39 @@ jobs:
           path: prod
           persist-credentials: false
 
-      - name: Welcher Pull Request kommt in die Preview?
-        id: preview
-        env:
-          GH_TOKEN: ${{ github.token }}
-          EVENT: ${{ github.event_name }}
-          ACTION: ${{ github.event.action }}
-          PR_SHA: ${{ github.event.pull_request.head.sha }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - name: Gibt es den Branch staging?
+        id: staging
         run: |
-          if [ "$EVENT" = "pull_request_target" ] && [ "$ACTION" != "closed" ]; then
-            echo "sha=$PR_SHA" >> "$GITHUB_OUTPUT"; echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          else
-            # Sonst: zuletzt geänderter offener Pull Request aus diesem Repository, falls es einen gibt
-            gh pr list --repo "$GITHUB_REPOSITORY" --base main --state open --limit 20 \
-              --json number,headRefOid,updatedAt,isCrossRepository \
-              --jq '[.[] | select(.isCrossRepository | not)] | sort_by(.updatedAt) | last
-                    | if . then "sha=\(.headRefOid)\nnumber=\(.number)" else "" end' >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --heads "https://github.com/$GITHUB_REPOSITORY" staging > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Preview (Pull Request) holen
-        if: steps.preview.outputs.sha != ''
+      - name: Beta (staging) holen
+        if: steps.staging.outputs.exists == 'true'
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.preview.outputs.sha }}
+          ref: staging
           path: beta
           persist-credentials: false
 
       - name: Website zusammenstellen
-        env:
-          PREVIEW_NUMBER: ${{ steps.preview.outputs.number }}
         run: |
-          # Nur die Dateien der App, keine Tests oder Werkzeuge
+          # Nur die Dateien der App, keine Tests, Specs oder Werkzeuge
           APP="index.html manifest.webmanifest sw.js css js icons"
-          mkdir site
-          (cd prod && cp -r $APP ../site/)
+          mkdir -p site/app
+          cp prod/root/index.html prod/root/sw.js site/
+          (cd prod && cp -r $APP ../site/app/)
+          version() { grep -o 'VERSION = "v[0-9]*"' "$1/sw.js" | grep -o 'v[0-9]*'; }
+          echo "Production: $(version prod) ($(git -C prod rev-parse --short HEAD))" >> "$GITHUB_STEP_SUMMARY"
           if [ -d beta ]; then
             mkdir site/beta
             (cd beta && cp -r $APP ../site/beta/)
-            # Installiert soll die Preview anders heißen als die echte App
+            # Installiert soll die Beta anders heißen und aussehen als die echte App
             sed -i 's/"name": "[^"]*"/"name": "Motivation Tracker Beta"/; s/"short_name": "[^"]*"/"short_name": "Beta"/' site/beta/manifest.webmanifest
-            # Eigenes Icon, damit die Preview auf dem Startbildschirm nicht mit der echten App verwechselt wird
             if [ -d site/beta/icons/beta ]; then cp site/beta/icons/beta/*.png site/beta/icons/; fi
-            echo "Preview: Pull Request #$PREVIEW_NUMBER" >> "$GITHUB_STEP_SUMMARY"
+            echo "Beta: $(version beta) ($(git -C beta rev-parse --short HEAD))" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "Preview: kein offener Pull Request" >> "$GITHUB_STEP_SUMMARY"
+            echo "Beta: kein Branch staging" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - uses: actions/configure-pages@v5

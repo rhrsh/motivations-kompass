@@ -18,14 +18,16 @@ Sicherungen weiter funktionieren.
 | `js/faces.js` | Die fünf Gesichter der Skala (SVG) |
 | `js/icons.js` | Neutraler Symbolkasten für die Motivatoren (Zuordnung im Einrichtungslink) |
 | `js/app.js` | **Logik:** Ablauf, Navigation, Zusammenfassung |
-| `js/env.js` | **Umgebung:** Production oder Preview, eigene Datenbank und eigener Offline-Speicher |
+| `js/env.js` | **Umgebung:** Production oder Beta, eigene Datenbank und eigener Offline-Speicher |
 | `js/week.js` | Kalenderwoche (ISO) |
 | `js/history.js` | **Verlauf:** Wochenliste, Richtung, Übersicht und Detail |
-| `js/sample.js` | Beispieldaten, nur in der Preview |
+| `js/sample.js` | Beispieldaten, nur in der Beta |
 | `manifest.webmanifest` | Macht die Seite installierbar (Name, Icon, Vollbild) |
 | `sw.js` | Service Worker: App startet auch offline |
+| `specs/` | **Spezifikationen:** was die App tun soll, mit Akzeptanzkriterien |
+| `root/` | Weiterleitung von der früheren Adresse auf `app/` |
 | `tests/`, `playwright.config.js`, `package.json` | Automatische Tests (nur Entwicklung, nicht Teil der App) |
-| `.github/workflows/` | CI (Tests) und Auslieferung (Production und Preview) |
+| `.github/workflows/` | CI (Tests) und Auslieferung (Production und Beta) |
 
 ## Bedienung
 
@@ -60,7 +62,7 @@ Sicherungen weiter funktionieren.
 ## Persönliche Motivatoren
 
 Die eigenen Motivatoren stehen bewusst nicht im öffentlichen Code. Sie werden einmalig über einen
-Einrichtungslink aufs Handy geladen: `…/motivations-kompass/#setup=<base64url-JSON>`.
+Einrichtungslink aufs Handy geladen: `…/motivations-kompass/app/#setup=<base64url-JSON>`.
 Der Teil nach `#` wird vom Browser nie an den Server geschickt. Die App speichert die Liste
 in der IndexedDB (`settings` → `motives`) und entfernt den Teil aus der Adresse.
 
@@ -92,32 +94,40 @@ Start automatisch.
 
 ## Umgebungen
 
-| Umgebung | Adresse | Inhalt | Daten |
+| Umgebung | Adresse | Branch | Daten |
 |---|---|---|---|
-| **Production** | `…/motivations-kompass/` | Stand von `main` | echte Daten (Datenbank `kompass`) |
-| **Preview** | `…/motivations-kompass/beta/` | neuester offener Pull Request | eigene Testdaten (Datenbank `kompass-beta`) |
+| **Production** | `…/motivations-kompass/app/` | `main` | echte Daten (Datenbank `kompass`) |
+| **Beta** | `…/motivations-kompass/beta/` | `staging` | Testdaten (Datenbank `kompass-beta`) |
 
-Beide liegen unter derselben Adresse und teilen sich den Speicher des Browsers. `js/env.js` erkennt die Umgebung
-am Pfad und gibt Datenbank und Offline-Speicher eigene Namen, damit die Preview echte Daten nie berührt.
-Die Preview ist mit „Beta“ gekennzeichnet (in der App und mit eigenem Icon aus `icons/beta/`, das die Auslieferung nur dort einsetzt) und hat unten „Beispieldaten laden“ und „Daten zurücksetzen“.
-Um mit echten Daten zu testen: in Production „Daten sichern“, in der Preview „Sicherung laden“.
+Die frühere Adresse `…/motivations-kompass/` leitet auf Production weiter (Dateien in `root/`).
+Production und Beta liegen nebeneinander statt ineinander, damit sich beide als eigene Apps installieren lassen.
+Beide gehören zur selben Website und teilen sich den Speicher des Browsers. `js/env.js` erkennt die Umgebung
+am Pfad und gibt Datenbank und Offline-Speicher eigene Namen, damit die Beta echte Daten nie berührt.
+Die Beta ist mit „Beta“ gekennzeichnet (in der App und mit eigenem Icon aus `icons/beta/`, das die Auslieferung nur
+dort einsetzt). Beim ersten Öffnen lädt sie Beispieldaten; unten gibt es „Beispieldaten laden“ und „Daten zurücksetzen“.
+Um mit echten Daten zu testen: in Production „Daten sichern“, in der Beta „Sicherung laden“.
+Details und Akzeptanzkriterien: `specs/001-umgebungen.md`.
 
 ## Entwicklungsprozess
 
 ```
-Issue → Feature-Branch → Pull Request → Tests (CI) → Preview → Abnahme → Merge = Release → Production
+Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach staging → Tests (CI) → Beta → Abnahme
+      → Release-PR staging → main → Production → Tag vNN
 ```
 
-1. **Issue:** User Story mit Akzeptanzkriterien im Backlog (GitHub Issues).
-2. **Feature-Branch:** eigene Arbeitskopie, z. B. `feature/verlauf`. `main` bleibt unberührt.
-3. **Pull Request:** Antrag, die Änderung zu übernehmen. Beschreibung, Änderungen und Prüfergebnisse an einem Ort.
-4. **CI** (`.github/workflows/ci.yml`): Die Tests in `tests/` laufen automatisch. Lokal: `npm install`, dann `npm test`.
-5. **Preview** (`.github/workflows/deploy.yml`): Der Pull Request wird automatisch unter `/beta/` ausgeliefert.
-6. **Abnahme:** Der Product Owner prüft in der Preview gegen die Akzeptanzkriterien.
-7. **Merge = Release:** Übernahme in `main`, automatische Auslieferung nach Production (ca. 1 Minute).
-   Auf dem Handy lädt sich die App beim nächsten Öffnen selbst neu. Die Version steht unten auf dem Startbildschirm.
+1. **Issue:** Wunsch im Backlog (GitHub Issues).
+2. **Spec** (`specs/`): Problem, User Story, nummerierte Akzeptanzkriterien (AK-1 …), Nicht-Ziele, Entscheidungen.
+   Eigener Pull Request; der Merge gibt den Bau frei. Siehe `specs/README.md`.
+3. **Feature-Branch** (`feature/…`, `fix/…`) von `staging`, dann **Pull Request nach `staging`**.
+4. **CI** (`.github/workflows/ci.yml`): Die Tests in `tests/` laufen automatisch. Ihre Titel nennen das Kriterium,
+   z. B. `[002 AK-7]`. Lokal: `npm install`, dann `npm test`.
+5. **Beta:** Nach dem Merge und grünen Tests liefert `.github/workflows/deploy.yml` den Stand von `staging` aus.
+   Abnahme gegen die Akzeptanzkriterien, auch mehrere Tickets zusammen (Integrationstest).
+6. **Release:** Pull Request `staging` → `main` mit Release Notes. Merge = Release, danach Tag `vNN`.
+   Auf dem Handy lädt sich die App beim nächsten Öffnen selbst neu, die Version steht unten auf dem Start.
+7. **Hotfix:** dringende Korrektur von `main` aus direkt nach `main`, danach zurück nach `staging` (Backmerge).
 
-**Rollback:** Den Merge mit „Revert“ rückgängig machen (auf GitHub im Pull Request), die alte Version ist dann wieder live.
+**Rollback:** Den Merge mit „Revert“ rückgängig machen, die vorige Version ist dann wieder live.
 
 ## Grenzen und nächste Schritte
 

@@ -1,4 +1,4 @@
-// Beispieldaten für die Preview (beta). Wird in Production nie geladen.
+// Beispieldaten für die Beta. Wird in Production nie geladen.
 // Erzeugt zurückliegende Wochen (ohne die aktuelle), damit man z. B. den Verlauf ausprobieren kann.
 // Die Werte sind ausgedacht, aber nicht zufällig: Jeder Motivator bekommt eine erkennbare Entwicklung
 // (steigt, sinkt, stabil hoch, stabil niedrig, schwankt), und eine Woche fehlt wie nach einem Urlaub.
