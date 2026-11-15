@@ -15,6 +15,7 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 
 - Akzeptanzkriterien sind nummeriert (**AK-1**, **AK-2**, …), prüfbar und beschreiben Verhalten, nicht Technik.
 - Nummern werden nie neu vergeben. Fällt ein Kriterium weg, wird es durchgestrichen und begründet.
+- Verworfene Specs bleiben mit Status „Verworfen“ und Begründung stehen.
 - „Nicht-Ziele“ sind genauso wichtig wie Ziele: Sie verhindern, dass mehr gebaut wird als gewollt.
 - Das Repository ist öffentlich: nur neutrale Beschreibungen, keine persönlichen Daten oder Motivatoren.
 
@@ -22,5 +23,6 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 
 | Spec | Thema | Status |
 |---|---|---|
-| [001](001-umgebungen.md) | Umgebungen: Production und Beta | Umgesetzt (v19) |
+| [001](001-umgebungen.md) | Umgebungen: Production und Beta | Umgesetzt (v21) |
 | [002](002-verlauf.md) | Verlauf über mehrere Wochen | Umgesetzt (v18) |
+| [003](003-entscheidungsfrage.md) | Eigene Entscheidungsfrage im Verlauf | Verworfen |

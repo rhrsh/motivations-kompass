@@ -9,15 +9,17 @@ lernen und auf die Arbeit übertragen. Daher die Fachbegriffe verwenden (Issue, 
 CI, Staging, Beta, Spec, Akzeptanzkriterium, Abnahme, Merge, Release, Tag, Hotfix, Rollback) und kurz erklären, wenn sie neu sind.
 
 Ablauf (Staging + Spec-driven Development, siehe `specs/README.md`):
-**Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach `staging` → CI grün → Abnahme in der Beta → Release-PR nach `main` → Tag**
+**Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach `staging` → CI grün → Abnahme in der Beta → Release-PR nach `main` → GitHub Release mit Tag**
 - Branches: `main` = Production (`/app/`), `staging` = Beta (`/beta/`), Arbeit auf `feature/…` bzw. `fix/…` (von `staging` abzweigen).
 - Neue Funktion: zuerst Spec in `specs/` (nach `000-vorlage.md`) als eigener PR nach `staging`. Der Merge ist die Freigabe zum Bauen.
   Kleine Korrekturen brauchen keine eigene Spec, ändern aber eine bestehende, wenn sich Verhalten ändert.
 - Umsetzung als PR nach `staging`, mit `Closes #…` und Verweis auf die Spec. Beschreiben: was, warum, wie getestet,
   was der Nutzer in der Beta prüfen soll. Tests nennen Spec und Kriterium im Titel, z. B. `[002 AK-7]`.
 - Release: Claude eröffnet auf Wunsch einen PR `staging` → `main` mit Titel „Release vNN“ und Release Notes
-  (umgesetzte Specs und Issues, Hinweise zur Datensicherung). Nach dem Merge setzt Claude den Tag `vNN` auf `main`
-  und trägt in den Specs „Umgesetzt (vNN)“ ein (PR nach `staging`).
+  (umgesetzte Specs und Issues, Hinweise zur Datensicherung). Specs, die im Release stecken, bekommen vorher
+  im selben Zug „Umgesetzt (vNN)“ (PR nach `staging`). Nach dem Merge legt der Nutzer auf GitHub unter
+  „Releases → Draft a new release“ das Release mit Tag `vNN` auf `main` an; Claude liefert dafür Titel und Text.
+  (Claude kann aus dieser Umgebung keine Tags hochladen.)
 - Hotfix (dringender Fehler in Production): Branch `fix/…` von `main`, PR nach `main`, danach PR `main` → `staging` (Backmerge).
 - Nie direkt auf `main` oder `staging` pushen. Nur der Nutzer merged. Claude merged nie selbst.
 - Ausgeliefert wird nur nach grünen Tests (`.github/workflows/deploy.yml` startet nach „Tests“).

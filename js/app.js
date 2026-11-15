@@ -343,7 +343,7 @@ $("importFile").addEventListener("change", async (e) => {
     const r = await store.importFile(file);
     msg = r.added
       ? `Sicherung geladen: ${r.added} Einträge aus ${r.weeks} ${r.weeks === 1 ? "Woche" : "Wochen"} übernommen.`
-      : "Sicherung geladen. Alles war schon auf dem Gerät.";
+      : r.motivesTaken ? "Sicherung geladen." : "Sicherung geladen. Alles war schon auf dem Gerät.";
     if (r.motivesTaken) msg += " Motivatoren übernommen.";
   } catch {
     msg = "Diese Datei konnte nicht geladen werden. Ist es eine Sicherung des Motivation Trackers?";

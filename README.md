@@ -123,7 +123,7 @@ Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach staging → Test
    z. B. `[002 AK-7]`. Lokal: `npm install`, dann `npm test`.
 5. **Beta:** Nach dem Merge und grünen Tests liefert `.github/workflows/deploy.yml` den Stand von `staging` aus.
    Abnahme gegen die Akzeptanzkriterien, auch mehrere Tickets zusammen (Integrationstest).
-6. **Release:** Pull Request `staging` → `main` mit Release Notes. Merge = Release, danach Tag `vNN`.
+6. **Release:** Pull Request `staging` → `main` mit Release Notes. Merge = Release, danach auf GitHub ein Release mit Tag `vNN` anlegen.
    Auf dem Handy lädt sich die App beim nächsten Öffnen selbst neu, die Version steht unten auf dem Start.
 7. **Hotfix:** dringende Korrektur von `main` aus direkt nach `main`, danach zurück nach `staging` (Backmerge).
 
@@ -135,5 +135,6 @@ Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach staging → Test
 - **Sicherung laden** führt die Datei mit den Daten auf dem Gerät zusammen: Gibt es einen Eintrag (Woche + Motivator)
   doppelt, gewinnt der neuere. Motivatoren aus der Datei werden nur übernommen, wenn auf dem Gerät noch keine
   eingerichtet sind. Liest auch Sicherungen aus der Zeit vor v7.
-- **Offen:** Erinnerung an den Wochencheck, eigene Entscheidungsfrage im Verlauf.
+- **Offen:** Erinnerung an den Wochencheck.
+- Verworfen: eigene Entscheidungsfrage im Verlauf (`specs/003-entscheidungsfrage.md`).
 - Bewusst nicht: Mustererkennung, Cloud-Speicher, Konten.

@@ -173,7 +173,9 @@ export async function importFile(file) {
   }
   const valid = rows.filter((r) => /^\d{4}-W\d{2}$/.test(r.week) && r.motive
     && (r.rating === null || [1, 2, 3, 4, 5].includes(r.rating)) && typeof r.comment === "string");
-  if (!valid.length) throw new Error("Keine Bewertungen in der Datei gefunden");
+  // Auch eine Sicherung ohne Bewertungen, aber mit Motivatoren, ist gültig (z. B. direkt nach der Einrichtung)
+  const hasMotives = Array.isArray(data?.motives) && data.motives.length;
+  if (!valid.length && !hasMotives) throw new Error("Keine Daten in der Datei gefunden");
 
   const tx = (await db()).transaction(["entries", "settings"], "readwrite");
   const entries = tx.objectStore("entries"), settings = tx.objectStore("settings");
