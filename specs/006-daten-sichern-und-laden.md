@@ -36,6 +36,7 @@ verloren. Es braucht eine Sicherung, die der Nutzer selbst in der Hand hat, ohne
 
 - Kein Cloud-Speicher, kein Konto, keine automatische Sicherung auf einen Server.
 - Kein Ersetzen-Modus („alles überschreiben“).
+- Keine Erinnerung ans Sichern. Das Sichern liegt in der Verantwortung des Nutzers (entschieden vom Product Owner bei der Spec-Prüfung).
 
 ## Entscheidungen
 
@@ -49,6 +50,3 @@ verloren. Es braucht eine Sicherung, die der Nutzer selbst in der Hand hat, ohne
 | AK-6 | „Sichern/Laden: Sicherung nur mit Motivatoren, ohne Bewertungen, lässt sich laden“ |
 | AK-1 bis AK-5, AK-7 bis AK-11 | noch ohne eigenen Test |
 
-## Offen
-
-- Es gibt keine Erinnerung ans Sichern. Wer nie sichert, verliert bei gelöschten Browserdaten alles.

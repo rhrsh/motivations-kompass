@@ -42,6 +42,7 @@ braucht es einen kompakten Überblick über die Woche, ohne Scrollen und ohne Ur
 
 - Der Schnitt wird nicht gespeichert, sondern beim Anzeigen berechnet. So kann er nie veralten.
 - Zweistufiges Löschen statt Bestätigungsdialog: schnell, aber nicht aus Versehen.
+- „Neu ausfüllen“ beginnt die Woche ganz neu, auch ohne Kommentare (entschieden vom Product Owner bei der Spec-Prüfung).
 
 ## Testabdeckung
 
@@ -51,6 +52,3 @@ braucht es einen kompakten Überblick über die Woche, ohne Scrollen und ohne Ur
 | AK-10 (Link zum Verlauf), AK-11 | „[002 AK-14, AK-15] Einstieg aus der Auswertung …“ |
 | AK-1, AK-2, AK-4 bis AK-9, AK-12 | noch ohne eigenen Test |
 
-## Offen
-
-- „Neu ausfüllen“ löscht auch die Kommentare. Ist das gewollt, oder sollen Kommentare erhalten bleiben?

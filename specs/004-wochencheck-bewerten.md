@@ -38,7 +38,7 @@ aber nur, wenn er schnell geht und ohne Hürden auf dem Handy funktioniert.
 
 - Keine Pflicht zum Kommentar, keine Zeichenbegrenzung.
 - Keine Zwischenstufen (z. B. 3,5) und keine Skala mit Zahlen.
-- Keine Bewertung vergangener Wochen nachträglich.
+- Keine Bewertung vergangener Wochen nachträglich. Eine vergessene Woche bleibt eine Lücke (entschieden vom Product Owner bei der Spec-Prüfung).
 
 ## Entscheidungen
 
@@ -53,6 +53,3 @@ aber nur, wenn er schnell geht und ohne Hürden auf dem Handy funktioniert.
 | AK-3, AK-7 (Speichern über Neuladen) | „Bewerten: Auswertung passt ohne Scrollen und bleibt nach Neuladen erhalten“ |
 | AK-1, AK-2, AK-4, AK-5, AK-6, AK-8 bis AK-11 | noch ohne eigenen Test |
 
-## Offen
-
-- Nachträgliches Bewerten einer vergessenen Woche ist nicht möglich. Bewusst so lassen?

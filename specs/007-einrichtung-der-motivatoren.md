@@ -41,7 +41,7 @@ einmalig aufs Handy kommen.
 | AK-1, AK-2, AK-7 | „[001 AK-11] Frühere Adresse leitet weiter, Daten und Einrichtungslink bleiben“ |
 | AK-3 bis AK-6, AK-8 | noch ohne eigenen Test |
 
-## Offen
+## Offen (vorgemerkt in #19, Lösung folgt)
 
 - Ein fehlerhafter Link wird stillschweigend ignoriert, ein erfolgreicher nicht bestätigt. Man merkt erst beim Bewerten, ob er gewirkt hat.
 - Ein neuer Link ersetzt die vorhandenen Motivatoren ohne Rückfrage.
