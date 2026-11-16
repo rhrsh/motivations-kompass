@@ -9,24 +9,30 @@ lernen und auf die Arbeit übertragen. Daher die Fachbegriffe verwenden (Issue, 
 CI, Staging, Beta, Spec, Akzeptanzkriterium, Abnahme, Merge, Release, Tag, Hotfix, Rollback) und kurz erklären, wenn sie neu sind.
 
 Ablauf (Staging + Spec-driven Development, siehe `specs/README.md`):
-**Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach `staging` → CI grün → Abnahme in der Beta → Release-PR nach `main` → GitHub Release mit Tag**
-- Branches: `main` = Production (`/app/`), `staging` = Beta (`/beta/`), Arbeit auf `feature/…` bzw. `fix/…` (von `staging` abzweigen).
-- Neue Funktion: zuerst Spec in `specs/` (nach `000-vorlage.md`) als eigener PR nach `staging`. Der Merge ist die Freigabe zum Bauen.
+**Issue → Spec → Freigabe im Chat → Feature-Branch → PR nach `staging` → CI grün → Auto-Merge → Abnahme in der Beta → Release-PR → Merge durch den Nutzer → GitHub Release automatisch**
+
+Der Nutzer arbeitet so wenig wie möglich in GitHub: Er entscheidet im Chat, nimmt in der Beta-App ab und klickt nur beim Release.
+- Branches: `main` = Production (`/app/`), `staging` = Beta (`/beta/`), Arbeit auf `feature/…`, `fix/…`, `spec/…`, `test/…` (von `staging` abzweigen).
+- Neue Funktion: zuerst Spec in `specs/` (nach `000-vorlage.md`). Claude zeigt die Spec im Chat (Kernpunkte, Kriterien, Nicht-Ziele, offene Fragen)
+  und eröffnet den Spec-PR nach `staging`. Sagt der Nutzer im Chat, dass die Spec passt, schaltet Claude Auto-Merge ein.
   Kleine Korrekturen brauchen keine eigene Spec, ändern aber eine bestehende, wenn sich Verhalten ändert.
 - Umsetzung als PR nach `staging`, mit `Closes #…` und Verweis auf die Spec. Beschreiben: was, warum, wie getestet,
   was der Nutzer in der Beta prüfen soll. Tests nennen Spec und Kriterium im Titel, z. B. `[002 AK-7]`.
-- Release: Claude eröffnet auf Wunsch einen PR `staging` → `main` mit Titel „Release vNN“ und Release Notes
-  (umgesetzte Specs und Issues, Hinweise zur Datensicherung). Specs, die im Release stecken, bekommen vorher
-  im selben Zug „Umgesetzt (vNN)“ (PR nach `staging`). Nach dem Merge legt der Nutzer auf GitHub unter
-  „Releases → Draft a new release“ das Release mit Tag `vNN` auf `main` an; Claude liefert dafür Titel und Text.
-  (Claude kann aus dieser Umgebung keine Tags hochladen.)
-- Hotfix (dringender Fehler in Production): Branch `fix/…` von `main`, PR nach `main`, danach PR `main` → `staging` (Backmerge).
-- Nie direkt auf `main` oder `staging` pushen. Nur der Nutzer merged. Claude merged nie selbst.
+- PRs nach `staging` (Specs, Umsetzung, Tests, Korrekturen, Rollbacks, Backmerges): Claude schaltet Auto-Merge ein.
+  GitHub merged, sobald die Tests grün sind. Wird ein Test rot, behebt Claude die Ursache.
+- Nach `main` merged nur der Nutzer: Release-PRs und Hotfixes. Claude schaltet dort nie Auto-Merge ein.
+- Release: Claude eröffnet auf Wunsch den PR `staging` → `main` mit Titel „Release vNN – <Kurzbeschreibung>“ und Release Notes
+  (umgesetzte Specs und Issues, Hinweise zur Datensicherung). Specs, die im Release stecken, bekommen vorher „Umgesetzt (vNN)“
+  (eigener PR nach `staging` mit Auto-Merge). Nach dem Merge legt `.github/workflows/release.yml` Tag und GitHub Release an,
+  Titel und Text aus dem Release-PR.
+- Hotfix (dringender Fehler in Production): Branch `fix/…` von `main`, PR nach `main` (Nutzer merged), danach PR `main` → `staging` (Backmerge, Auto-Merge).
+- Nie direkt auf `main` oder `staging` pushen. Claude merged nie direkt, sondern nutzt nach `staging` ausschließlich Auto-Merge nach grünen Tests.
 - Ausgeliefert wird nur nach grünen Tests (`.github/workflows/deploy.yml` startet nach „Tests“).
 - Production und Beta sind über `js/env.js` getrennt (eigene Datenbank, eigener Offline-Speicher) und liegen nebeneinander,
   nie ineinander, damit beide installierbar bleiben (Spec 001, AK-10). Diese Trennung nie aufweichen.
 - `VERSION` in `sw.js`: jeder Feature-PR erhöht sie um eins. Bei Konflikten `staging` in den Branch mergen und die nächste freie Nummer nehmen.
-- Rollback: Merge-Commit per `git revert` auf einem Branch rückgängig machen und als PR einreichen.
+- Rollback: Merge-Commit per `git revert` auf einem Branch rückgängig machen und als PR einreichen (nach `staging` mit Auto-Merge, nach `main` merged der Nutzer).
+- PR-Beschreibungen nach dem Anlegen prüfen: Das GitHub-Werkzeug hängt einen Sitzungs-Link an, der entfernt werden muss (siehe Datenschutz).
 
 Definition of Done (vor jedem PR):
 - Akzeptanzkriterien der Spec sind durch Tests abgedeckt (Titel mit `[NNN AK-x]`), soweit automatisch prüfbar.
