@@ -23,7 +23,7 @@ Der Nutzer arbeitet so wenig wie möglich in GitHub: Er entscheidet im Chat, nim
 - Nach `main` merged nur der Nutzer: Release-PRs und Hotfixes. Claude schaltet dort nie Auto-Merge ein.
 - Release: Claude eröffnet auf Wunsch den PR `staging` → `main` mit Titel „Release vNN – <Kurzbeschreibung>“ und Release Notes
   (umgesetzte Specs und Issues, Hinweise zur Datensicherung). Specs, die im Release stecken, bekommen vorher „Umgesetzt (vNN)“
-  (eigener PR nach `staging` mit Auto-Merge). Nach dem Merge legt `.github/workflows/release.yml` Tag und GitHub Release an,
+  (eigener PR nach `staging` mit Auto-Merge). Nach erfolgreicher Auslieferung legt `.github/workflows/release.yml` Tag und GitHub Release an,
   Titel und Text aus dem Release-PR.
 - Hotfix (dringender Fehler in Production): Branch `fix/…` von `main`, PR nach `main` (Nutzer merged), danach PR `main` → `staging` (Backmerge, Auto-Merge).
 - Nie direkt auf `main` oder `staging` pushen. Claude merged nie direkt, sondern nutzt nach `staging` ausschließlich Auto-Merge nach grünen Tests.

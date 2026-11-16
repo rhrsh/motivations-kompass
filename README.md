@@ -125,7 +125,7 @@ Issue → Spec → Freigabe im Chat → Feature-Branch → PR nach staging → T
 6. **Beta:** `.github/workflows/deploy.yml` liefert den Stand von `staging` aus. Abnahme gegen die Akzeptanzkriterien,
    auch mehrere Tickets zusammen (Integrationstest).
 7. **Release:** Pull Request `staging` → `main` mit Release Notes. Den Merge macht der Product Owner, das ist das Release.
-   Danach legt `.github/workflows/release.yml` Tag `vNN` und GitHub Release an.
+   Nach erfolgreicher Auslieferung legt `.github/workflows/release.yml` Tag `vNN` und GitHub Release an.
 8. **Hotfix:** dringende Korrektur von `main` aus direkt nach `main`, danach zurück nach `staging` (Backmerge).
 
 **Rollback:** Den Merge mit „Revert“ rückgängig machen, die vorige Version ist dann wieder live.
