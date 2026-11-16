@@ -1,0 +1,52 @@
+# GitHub Release: legt nach jedem Release (Merge nach main) automatisch Tag und Release an.
+#
+# Version  aus sw.js (VERSION = "vNN")
+# Titel    aus dem Titel des gemergten Pull Requests („Release vNN – …“)
+# Text     aus der Beschreibung des gemergten Pull Requests (Release Notes)
+#
+# Gibt es den Tag schon (z. B. bei einem Hotfix ohne neue Version), passiert nichts.
+name: GitHub Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Release anlegen, falls die Version neu ist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          VERSION=$(grep -o 'VERSION = "v[0-9]*"' sw.js | grep -o 'v[0-9]*')
+          if [ -z "$VERSION" ]; then echo "Keine VERSION in sw.js gefunden"; exit 1; fi
+          if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release $VERSION gibt es schon, nichts zu tun." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          # Der Pull Request, der diesen Stand nach main gebracht hat
+          gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/pulls" --jq '.[0] // empty' > pr.json || true
+          if [ -s pr.json ]; then
+            TITLE=$(jq -r '.title' pr.json)
+            jq -r '.body // ""' pr.json > notes.md
+            printf '\n\nPull Request: #%s\n' "$(jq -r '.number' pr.json)" >> notes.md
+          else
+            TITLE="Release $VERSION"
+            echo "Release $VERSION" > notes.md
+          fi
+          gh release create "$VERSION" --repo "$GITHUB_REPOSITORY" --target "$SHA" --title "$TITLE" --notes-file notes.md
+          echo "Release $VERSION angelegt: $TITLE" >> "$GITHUB_STEP_SUMMARY"

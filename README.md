@@ -27,7 +27,7 @@ Sicherungen weiter funktionieren.
 | `specs/` | **Spezifikationen:** was die App tun soll, mit Akzeptanzkriterien |
 | `root/` | Weiterleitung von der früheren Adresse auf `app/` |
 | `tests/`, `playwright.config.js`, `package.json` | Automatische Tests (nur Entwicklung, nicht Teil der App) |
-| `.github/workflows/` | CI (Tests) und Auslieferung (Production und Beta) |
+| `.github/workflows/` | CI (Tests), Auslieferung (Production und Beta), GitHub Release |
 
 ## Bedienung
 
@@ -111,21 +111,22 @@ Details und Akzeptanzkriterien: `specs/001-umgebungen.md`.
 ## Entwicklungsprozess
 
 ```
-Issue → Spec → Spec-Freigabe → Feature-Branch → PR nach staging → Tests (CI) → Beta → Abnahme
-      → Release-PR staging → main → Production → Tag vNN
+Issue → Spec → Freigabe im Chat → Feature-Branch → PR nach staging → Tests (CI) → Auto-Merge → Beta → Abnahme
+      → Release-PR staging → main → Merge durch den Product Owner → Production → GitHub Release (automatisch)
 ```
 
 1. **Issue:** Wunsch im Backlog (GitHub Issues).
 2. **Spec** (`specs/`): Problem, User Story, nummerierte Akzeptanzkriterien (AK-1 …), Nicht-Ziele, Entscheidungen.
-   Eigener Pull Request; der Merge gibt den Bau frei. Siehe `specs/README.md`.
+   Der Product Owner gibt sie im Chat frei. Siehe `specs/README.md`.
 3. **Feature-Branch** (`feature/…`, `fix/…`) von `staging`, dann **Pull Request nach `staging`**.
 4. **CI** (`.github/workflows/ci.yml`): Die Tests in `tests/` laufen automatisch. Ihre Titel nennen das Kriterium,
    z. B. `[002 AK-7]`. Lokal: `npm install`, dann `npm test`.
-5. **Beta:** Nach dem Merge und grünen Tests liefert `.github/workflows/deploy.yml` den Stand von `staging` aus.
-   Abnahme gegen die Akzeptanzkriterien, auch mehrere Tickets zusammen (Integrationstest).
-6. **Release:** Pull Request `staging` → `main` mit Release Notes. Merge = Release, danach auf GitHub ein Release mit Tag `vNN` anlegen.
-   Auf dem Handy lädt sich die App beim nächsten Öffnen selbst neu, die Version steht unten auf dem Start.
-7. **Hotfix:** dringende Korrektur von `main` aus direkt nach `main`, danach zurück nach `staging` (Backmerge).
+5. **Auto-Merge:** Sind die Tests grün, merged GitHub den PR nach `staging` selbst. Ein Ruleset verhindert Merges ohne grüne Tests.
+6. **Beta:** `.github/workflows/deploy.yml` liefert den Stand von `staging` aus. Abnahme gegen die Akzeptanzkriterien,
+   auch mehrere Tickets zusammen (Integrationstest).
+7. **Release:** Pull Request `staging` → `main` mit Release Notes. Den Merge macht der Product Owner, das ist das Release.
+   Danach legt `.github/workflows/release.yml` Tag `vNN` und GitHub Release an.
+8. **Hotfix:** dringende Korrektur von `main` aus direkt nach `main`, danach zurück nach `staging` (Backmerge).
 
 **Rollback:** Den Merge mit „Revert“ rückgängig machen, die vorige Version ist dann wieder live.
 
