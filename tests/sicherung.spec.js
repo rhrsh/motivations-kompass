@@ -1,7 +1,7 @@
 // Daten sichern und laden (specs/006-daten-sichern-und-laden.md)
 const { test, expect } = require("@playwright/test");
 const fs = require("fs");
-const { PROD, failOnConsoleErrors, setupHash, currentWeek, backupFile, weeksIn } = require("./helpers");
+const { PROD, failOnConsoleErrors, setupHash, currentWeek, backupFile, weeksIn, commentSaved } = require("./helpers");
 
 failOnConsoleErrors();
 
@@ -10,11 +10,17 @@ const MOTIVES = [{ id: "a", name: "Testmotiv A", q: "Frage A?", icon: "key" }, {
 async function ready(page) {
   await expect(page.locator("#homeText")).not.toBeEmpty();
 }
-async function rateFirst(page, v, comment) {
+async function rateFirst(page, v, comment, motive = "verantwortung") {
   await page.locator("#homeBtn").tap();
+  // Erst kommentieren, dann bewerten: Mit dem Cursor im Kommentarfeld springt die App nicht weiter (004 AK-5).
+  // So hängt der Test nicht davon ab, wie schnell der Rechner ist.
+  if (comment) {
+    await page.locator("#comment").tap();
+    await page.locator("#comment").fill(comment);
+  }
   await page.locator(`#scale .opt[data-v="${v}"]`).tap();
-  if (comment) { await page.locator("#comment").tap(); await page.locator("#comment").fill(comment); }
   await expect(page.locator("#saveState")).toHaveText("✓ Gespeichert");
+  if (comment) await commentSaved(page, motive, comment);
 }
 const rowsIn = (page) => page.evaluate(async () => {
   const db = await new Promise((r) => { const q = indexedDB.open("kompass"); q.onsuccess = () => r(q.result); });
@@ -24,7 +30,7 @@ const rowsIn = (page) => page.evaluate(async () => {
 test("[006 AK-1, AK-2] Sicherung enthält Wochen, Kommentare und Motivatoren, Dateiname mit Ortsdatum", async ({ page }, info) => {
   await page.goto(PROD + setupHash(MOTIVES));
   await ready(page);
-  await rateFirst(page, 4, "Kommentar für die Sicherung");
+  await rateFirst(page, 4, "Kommentar für die Sicherung", "a");
   await page.goto(PROD);
   const [dl] = await Promise.all([page.waitForEvent("download"), page.locator("#exportBtn").click()]);
   const today = await page.evaluate(() => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; });

@@ -1,6 +1,6 @@
 // Wochencheck bewerten (specs/004-wochencheck-bewerten.md)
 const { test, expect } = require("@playwright/test");
-const { PROD, failOnConsoleErrors } = require("./helpers");
+const { PROD, failOnConsoleErrors, commentSaved } = require("./helpers");
 
 failOnConsoleErrors();
 
@@ -73,10 +73,11 @@ test("[004 AK-5, AK-6] Kommentar hält an, „Weiter →“ und Enter gehen weit
 
 test("[004 AK-7] Bewertung und Kommentar sind sofort gespeichert", async ({ page }) => {
   await startWeek(page);
-  await face(page, 2).tap();
+  // Erst kommentieren, dann bewerten: Mit dem Cursor im Kommentarfeld springt die App nicht weiter (AK-5).
   await page.locator("#comment").tap();
   await page.locator("#comment").fill("Sofort gespeichert");
-  await expect(page.locator("#saveState")).toHaveText("✓ Gespeichert");
+  await face(page, 2).tap();
+  await commentSaved(page, "verantwortung", "Sofort gespeichert");
   await page.reload();
   await page.locator("#homeBtn").tap(); // „Weiter bei …“ führt zum zweiten
   await page.locator("#progress button").nth(0).tap();
