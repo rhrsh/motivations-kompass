@@ -1,15 +1,21 @@
-# GitHub Release: legt nach jedem Release (Merge nach main) automatisch Tag und Release an.
+# GitHub Release: legt nach jedem Release automatisch Tag und Release an.
 #
-# Version  aus sw.js (VERSION = "vNN")
-# Titel    aus dem Titel des gemergten Pull Requests („Release vNN – …“)
-# Text     aus der Beschreibung des gemergten Pull Requests (Release Notes)
+# Läuft erst, wenn die Auslieferung (deploy.yml) erfolgreich war. Die Auslieferung wartet ihrerseits auf grüne Tests.
+# So gibt es nie ein GitHub Release für eine Version, die nicht live ist.
 #
-# Gibt es den Tag schon (z. B. bei einem Hotfix ohne neue Version), passiert nichts.
+# Version  aus sw.js von main (VERSION = "vNN")
+# Titel    aus dem Titel des Pull Requests, der diesen Stand nach main gebracht hat („Release vNN – …“)
+# Text     aus dessen Beschreibung (Release Notes)
+#
+# Gibt es den Tag schon, passiert nichts. Das ist der Normalfall, wenn die Auslieferung wegen einer
+# Änderung auf staging lief: main ist dann unverändert und schon released.
 name: GitHub Release
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [Auslieferung]
+    types: [completed]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,17 +27,19 @@ concurrency:
 
 jobs:
   release:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           persist-credentials: false
 
       - name: Release anlegen, falls die Version neu ist
         env:
           GH_TOKEN: ${{ github.token }}
-          SHA: ${{ github.sha }}
         run: |
+          SHA=$(git rev-parse HEAD) # der ausgelieferte Stand von main
           VERSION=$(grep -o 'VERSION = "v[0-9]*"' sw.js | grep -o 'v[0-9]*')
           if [ -z "$VERSION" ]; then echo "Keine VERSION in sw.js gefunden"; exit 1; fi
           if gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
