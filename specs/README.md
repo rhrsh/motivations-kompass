@@ -5,8 +5,9 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 ## Ablauf (Spec-driven Development)
 
 1. **Spec schreiben:** neue Datei nach `000-vorlage.md`, fortlaufend nummeriert. Status „Entwurf“.
-2. **Spec-Freigabe:** Pull Request nur mit der Spec nach `staging`. Der Merge durch den Product Owner gibt den Bau frei (Status „Freigegeben“).
-3. **Umsetzung:** Pull Request mit Code und Tests nach `staging`. Jeder Test nennt Spec und Kriterium, z. B. `[002 AK-7]`.
+2. **Spec-Freigabe:** Claude zeigt die Spec im Chat und eröffnet einen Pull Request nur mit der Spec nach `staging`.
+   Sagt der Product Owner „Spec passt“, wird der PR per Auto-Merge übernommen und der Bau ist freigegeben (Status „Freigegeben“).
+3. **Umsetzung:** Pull Request mit Code und Tests nach `staging`, Auto-Merge nach grünen Tests. Jeder Test nennt Spec und Kriterium, z. B. `[002 AK-7]`.
 4. **Abnahme in der Beta** gegen die Akzeptanzkriterien.
 5. **Release:** mit dem nächsten Release-PR nach `main` (Status „Umgesetzt (vNN)“).
 6. **Änderungen am Verhalten** beginnen mit einer Änderung der Spec. Die Spec bleibt die aktuelle Beschreibung.
