@@ -1,10 +1,10 @@
-// Bewerten (Bestand, noch ohne eigene Spec) und Umgebungen (specs/001-umgebungen.md)
+// Durchgang durch eine ganze Woche (004, 005) und Umgebungen (001)
 const { test, expect } = require("@playwright/test");
 const { PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek } = require("./helpers");
 
 failOnConsoleErrors();
 
-test("Bewerten: Auswertung passt ohne Scrollen und bleibt nach Neuladen erhalten", async ({ page }) => {
+test("[004 AK-3, AK-7] [005 AK-3, AK-11] Ganze Woche bewerten: Auswertung ohne Scrollen, bleibt nach Neuladen", async ({ page }) => {
   await page.goto(PROD);
   await expect(page.locator("#homeBtn")).toHaveText("Woche bewerten");
   await rateWholeWeek(page);
@@ -71,17 +71,4 @@ test("[001 AK-3] Offline-Speicher von Production und Beta bleiben getrennt erhal
     return (await (await caches.open(name)).keys()).map((r) => r.url).filter((u) => u.includes("/beta/"));
   });
   expect(leaked, "Production darf keine Dateien der Beta speichern").toEqual([]);
-});
-
-test("Sichern/Laden: Sicherung nur mit Motivatoren, ohne Bewertungen, lässt sich laden", async ({ page }) => {
-  const backup = {
-    format: "motivations-kompass/2", exportedAt: new Date().toISOString(),
-    motives: [{ id: "a", name: "Testmotiv A", q: "Frage A?", icon: "key" }], weeks: {},
-  };
-  await page.goto(PROD);
-  await expect(page.locator("#homeText")).toContainText("noch nicht bewertet"); // App ist bereit
-  await page.setInputFiles("#importFile", { name: "sicherung.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(backup)) });
-  await expect(page.locator("#homeText")).toContainText("Motivatoren übernommen");
-  await page.locator("#homeBtn").tap();
-  await expect(page.locator("#qName")).toHaveText("Testmotiv A");
 });

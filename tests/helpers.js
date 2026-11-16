@@ -38,4 +38,15 @@ async function rateWholeWeek(page, value) {
   await expect(page.locator("#summary")).toBeVisible();
 }
 
-module.exports = { ROOT, PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek };
+// Einrichtungslink-Teil für eine Liste von Motivatoren (base64url, wie in der README beschrieben)
+function setupHash(list) {
+  return "#setup=" + Buffer.from(JSON.stringify(list)).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+// Aktuelle Kalenderwoche aus Sicht der App ("2026-W46")
+const currentWeek = (page) => page.evaluate(async () => (await import("./js/week.js")).isoWeek(new Date()).key);
+
+// Sicherungsdatei als Datei-Auswahl (ohne Umweg über das Dateisystem)
+const backupFile = (data) => ({ name: "sicherung.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(data)) });
+
+module.exports = { ROOT, PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek, setupHash, currentWeek, backupFile };

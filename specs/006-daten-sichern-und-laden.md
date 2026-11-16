@@ -45,8 +45,9 @@ verloren. Es braucht eine Sicherung, die der Nutzer selbst in der Hand hat, ohne
 
 ## Testabdeckung
 
-| Kriterium | Test |
-|---|---|
-| AK-6 | „Sichern/Laden: Sicherung nur mit Motivatoren, ohne Bewertungen, lässt sich laden“ |
-| AK-1 bis AK-5, AK-7 bis AK-11 | noch ohne eigenen Test |
+Tests nennen das Kriterium im Titel, z. B. `[004 AK-2]`.
 
+| Kriterium | Abgedeckt durch |
+|---|---|
+| AK-1 bis AK-10 | `tests/sicherung.spec.js` |
+| AK-11 | Trennung der Daten über `[001 AK-2, AK-4]` |

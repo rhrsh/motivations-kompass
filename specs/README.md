@@ -15,7 +15,7 @@ Hier steht, **was** die App tun soll und woran man erkennt, dass es stimmt. Der 
 
 Die Specs 004 bis 008 beschreiben Funktionen, die vor der Einführung von Specs gebaut wurden. Sie halten das heutige
 Verhalten fest. Fragwürdiges steht unter „Offen“ und wird nur nach Entscheidung des Product Owners geändert.
-Jede Spec zeigt unter „Testabdeckung“, welche Kriterien schon automatisch geprüft werden.
+Jede Spec zeigt unter „Testabdeckung“, welcher Test welches Kriterium prüft.
 
 ## Regeln
 

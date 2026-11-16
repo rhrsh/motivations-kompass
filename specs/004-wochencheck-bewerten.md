@@ -48,8 +48,9 @@ aber nur, wenn er schnell geht und ohne Hürden auf dem Handy funktioniert.
 
 ## Testabdeckung
 
-| Kriterium | Test |
-|---|---|
-| AK-3, AK-7 (Speichern über Neuladen) | „Bewerten: Auswertung passt ohne Scrollen und bleibt nach Neuladen erhalten“ |
-| AK-1, AK-2, AK-4, AK-5, AK-6, AK-8 bis AK-11 | noch ohne eigenen Test |
+Tests nennen das Kriterium im Titel, z. B. `[004 AK-2]`.
 
+| Kriterium | Abgedeckt durch |
+|---|---|
+| AK-1 bis AK-11 | `tests/bewerten.spec.js` |
+| AK-3, AK-7 | zusätzlich der Durchgang durch eine ganze Woche in `tests/app.spec.js` |
