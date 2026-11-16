@@ -49,4 +49,16 @@ const currentWeek = (page) => page.evaluate(async () => (await import("./js/week
 // Sicherungsdatei als Datei-Auswahl (ohne Umweg über das Dateisystem)
 const backupFile = (data) => ({ name: "sicherung.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(data)) });
 
-module.exports = { ROOT, PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek, setupHash, currentWeek, backupFile };
+// Wartet, bis ein Kommentar wirklich in der Datenbank steht. Die Meldung „✓ Gespeichert“ allein reicht nicht:
+// Sie kann noch von der Bewertung davor stammen, während der Kommentar gerade gespeichert wird.
+async function commentSaved(page, motive, comment, dbName = "kompass") {
+  const { expect } = require("@playwright/test");
+  await expect.poll(() => page.evaluate(async ([name, id]) => {
+    const db = await new Promise((r) => { const q = indexedDB.open(name); q.onsuccess = () => r(q.result); });
+    const rows = await new Promise((r) => { const q = db.transaction("entries").objectStore("entries").getAll(); q.onsuccess = () => r(q.result); });
+    db.close();
+    return rows.find((x) => x.motive === id)?.comment ?? null;
+  }, [dbName, motive]), { message: `Kommentar zu ${motive} gespeichert` }).toBe(comment);
+}
+
+module.exports = { ROOT, PROD, BETA, failOnConsoleErrors, fitsScreen, weeksIn, rateWholeWeek, setupHash, currentWeek, backupFile, commentSaved };
